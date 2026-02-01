@@ -1,0 +1,697 @@
+
+// import React, { useState, useEffect } from "react";
+// import { ArrowLeft, Shield, User } from "lucide-react";
+// import Swal from "sweetalert2";
+// import { useLocation, useNavigate } from "react-router-dom";
+
+// export default function GuarantorForm() {
+//   const navigate = useNavigate();
+//   const { state } = useLocation();
+//   const [isLoading, setIsLoading] = useState(false);
+  
+//   const [formData, setFormData] = useState({
+//     customerEmail: "",
+//     bvn: "",
+//     phoneNumber: "",
+//     nin: "",
+//     email: "",
+//   });
+
+//   useEffect(() => {
+//     // Redirect if OTP not verified
+//     if (!state?.otpVerified) {
+//       Swal.fire({
+//         title: "Unauthorized",
+//         text: "Please verify OTP first",
+//         icon: "warning",
+//         confirmButtonColor: "#f7623b",
+//       }).then(() => {
+//         navigate(-1);
+//       });
+//     }
+//   }, [state, navigate]);
+
+//   const handleChange = (e) => {
+//     const { name, value } = e.target;
+    
+//     // Validation for numeric fields
+//     // if ((name === "bvn" || name === "nin" || name === "phoneNumber") && !/^\d*$/.test(value)) {
+//     //   return;
+//     // }
+//     if ((name === "bvn" || name === "nin") && !/^\d*$/.test(value)) {
+//       return;
+//     }
+    
+//     // Length restrictions
+//     if (name === "bvn" && value.length > 11) return;
+//     if (name === "nin" && value.length > 11) return;
+//     if (name === "phoneNumber" && value.length > 12) return;
+    
+//     setFormData(prev => ({ ...prev, [name]: value }));
+//   };
+
+//   const validateForm = () => {
+//     // Validate customer email
+//     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+//     if (!emailRegex.test(formData.customerEmail)) {
+//       Swal.fire({
+//         title: "Invalid Customer Email",
+//         text: "Please enter a valid customer email address",
+//         icon: "error",
+//         confirmButtonColor: "#f7623b",
+//       });
+//       return false;
+//     }
+
+//     if (formData.bvn.length !== 11) {
+//       Swal.fire({
+//         title: "Invalid BVN",
+//         text: "BVN must be exactly 11 digits",
+//         icon: "error",
+//         confirmButtonColor: "#f7623b",
+//       });
+//       return false;
+//     }
+
+//     if (formData.nin.length !== 11) {
+//       Swal.fire({
+//         title: "Invalid NIN",
+//         text: "NIN must be exactly 11 digits",
+//         icon: "error",
+//         confirmButtonColor: "#f7623b",
+//       });
+//       return false;
+//     }
+
+//     if (formData.phoneNumber.length !== 12) {
+//       Swal.fire({
+//         title: "Invalid Phone Number",
+//         text: "Phone number must be exactly 11 digits",
+//         icon: "error",
+//         confirmButtonColor: "#f7623b",
+//       });
+//       return false;
+//     }
+
+//     if (!emailRegex.test(formData.email)) {
+//       Swal.fire({
+//         title: "Invalid Guarantor Email",
+//         text: "Please enter a valid guarantor email address",
+//         icon: "error",
+//         confirmButtonColor: "#f7623b",
+//       });
+//       return false;
+//     }
+
+//     return true;
+//   };
+
+//   const handleSubmit = async (e) => {
+//     e.preventDefault();
+
+//     if (!validateForm()) return;
+
+//     setIsLoading(true);
+
+//     try {
+
+//         console.log("Sending request:", {
+//             customerBvn: state?.bvn,
+//             customerFirstName: state?.firstName,
+//             customerLastName: state?.lastName,
+//             customerEmail: formData.customerEmail,
+//             customerPlan: state?.plan,
+//             customerInstallmentDuration: state?.installmentDuration || state?.omolopeDays,
+//             guarantorBvn: formData.bvn,
+//             guarantorPhoneNumber: formData.phoneNumber,
+//             guarantorNin: formData.nin,
+//             guarantorEmail: formData.email,
+//           });
+          
+//       const response = await fetch("http://localhost:8080/api/guarantor/submit", {
+//         method: "POST",
+//         headers: { "Content-Type": "application/json" },
+//         body: JSON.stringify({
+//           customerBvn: state?.bvn,
+//           customerFirstName: state?.firstName,
+//           customerLastName: state?.lastName,
+//           customerEmail: formData.customerEmail,
+//           customerPlan: state?.plan,
+//           customerInstallmentDuration: state?.installmentDuration || state?.omolopeDays,
+//           guarantorBvn: formData.bvn,
+//           guarantorPhoneNumber: formData.phoneNumber,
+//           guarantorNin: formData.nin,
+//           guarantorEmail: formData.email,
+//         }),
+//       });
+
+//       if (response.ok) {
+//         Swal.fire({
+//           title: "Success!",
+//           text: "Guarantor information submitted successfully",
+//           icon: "success",
+//           confirmButtonColor: "#f7623b",
+//         }).then(() => {
+//           navigate("//guarantor/otp/:token", { state });
+//         });
+//       } else {
+//         const errorData = await response.json().catch(() => ({}));
+//         throw new Error(errorData.message || "Failed to submit guarantor information");
+//       }
+//     } catch (error) {
+//       Swal.fire({
+//         title: "Error",
+//         text: error.message || "An error occurred. Please try again.",
+//         icon: "error",
+//         confirmButtonColor: "#f7623b",
+//       });
+//     } finally {
+//       setIsLoading(false);
+//     }
+//   };
+
+//   return (
+//     <div
+//       className="min-h-screen p-4 sm:p-6 lg:p-8"
+//       style={{ backgroundColor: "#f7623b" }}
+//     >
+//       <div className="max-w-3xl mx-auto">
+//         <button
+//           onClick={() => navigate(-1)}
+//           className="flex items-center text-white mb-6 font-medium hover:opacity-80 transition"
+//         >
+//           <ArrowLeft className="mr-2" /> Back
+//         </button>
+
+//         <div className="bg-black rounded-2xl shadow-2xl p-6 sm:p-8 space-y-8">
+//           {/* Header */}
+//           <div className="text-center">
+//             <div className="inline-flex items-center justify-center w-16 h-16 bg-[#f7623b] rounded-full mb-4">
+//               <Shield className="w-8 h-8 text-white" />
+//             </div>
+//             <h1 className="text-2xl sm:text-3xl font-bold mb-2 text-[#f7623b]">
+//               Guarantor Information
+//             </h1>
+//             <p className="text-sm sm:text-base text-gray-400">
+//               Please provide guarantor details to complete your application
+//             </p>
+//           </div>
+
+//           {/* Customer Plan Summary (Read-only) */}
+//           <div className="bg-gray-900 rounded-lg p-6 border-2 border-gray-800">
+//             <div className="flex items-center gap-2 mb-4">
+//               <User className="w-5 h-5 text-[#f7623b]" />
+//               <h2 className="text-lg font-semibold text-white">
+//                 {state?.firstName && state?.lastName 
+//                   ? `${state.firstName} ${state.lastName}'s Info` 
+//                   : "Your Plan"}
+//               </h2>
+//             </div>
+//             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+//               <div>
+//                 <label className="text-xs text-gray-500 uppercase tracking-wider">
+//                   Customer Name
+//                 </label>
+//                 <p className="text-white font-medium mt-1">
+//                   {state?.firstName && state?.lastName 
+//                     ? `${state.firstName} ${state.lastName}` 
+//                     : "N/A"}
+//                 </p>
+//               </div>
+//               <div>
+//                 <label className="text-xs text-gray-500 uppercase tracking-wider">
+//                   Selected Plan
+//                 </label>
+//                 <p className="text-white font-medium mt-1">
+//                   {state?.plan || "N/A"}
+//                 </p>
+//               </div>
+//               <div>
+//                 <label className="text-xs text-gray-500 uppercase tracking-wider">
+//                   Customer BVN
+//                 </label>
+//                 <p className="text-white font-medium mt-1">
+//                   {state?.bvn || "N/A"}
+//                 </p>
+//               </div>
+//               <div>
+//                 <label className="text-xs text-gray-500 uppercase tracking-wider">
+//                   Installment Duration
+//                 </label>
+//                 <p className="text-white font-medium mt-1">
+//                   {state?.installmentDuration 
+//                     ? `${state.installmentDuration} months` 
+//                     : state?.omolopeDays 
+//                     ? `${state.omolopeDays} days`
+//                     : "N/A"}
+//                 </p>
+//               </div>
+//             </div>
+//           </div>
+
+//           {/* Guarantor Form */}
+//           <form onSubmit={handleSubmit} className="space-y-6">
+//             {/* Customer Email Section */}
+//             <div className="space-y-4">
+//               <h3 className="text-lg font-semibold text-white mb-4">
+//                 Customer Information
+//               </h3>
+
+//               {/* Customer Email */}
+//               <div>
+//                 <label className="block text-sm font-medium text-gray-300 mb-2">
+//                   Customer Email Address <span className="text-red-500">*</span>
+//                 </label>
+//                 <input
+//                   type="email"
+//                   name="customerEmail"
+//                   value={state?.customerEmail}
+//                   onChange={handleChange}
+//                   placeholder="customer@example.com"
+//                   className="w-full px-4 py-3 bg-gray-900 border-2 border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#f7623b] transition"
+//                   required
+//                 />
+//               </div>
+//             </div>
+
+//             <div className="border-t border-gray-800 pt-6"></div>
+
+//             <div className="space-y-4">
+//               <h3 className="text-lg font-semibold text-white mb-4">
+//                 Guarantor Details
+//               </h3>
+
+//               {/* BVN */}
+//               <div>
+//                 <label className="block text-sm font-medium text-gray-300 mb-2">
+//                   Guarantor BVN <span className="text-red-500">*</span>
+//                 </label>
+//                 <input
+//                   type="text"
+//                   name="bvn"
+//                   value={formData.bvn}
+//                   onChange={handleChange}
+//                   placeholder="Enter 11-digit BVN"
+//                   className="w-full px-4 py-3 bg-gray-900 border-2 border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#f7623b] transition"
+//                   required
+//                 />
+//                 <p className="text-xs text-gray-500 mt-1">
+//                   {formData.bvn.length}/11 digits
+//                 </p>
+//               </div>
+
+//               {/* Phone Number */}
+//               <div>
+//                 <label className="block text-sm font-medium text-gray-300 mb-2">
+//                   Guarantor Phone Number <span className="text-red-500">*</span>
+//                 </label>
+//                 <input
+//                   type="tel"
+//                   name="phoneNumber"
+//                   value={formData.phoneNumber}
+//                   onChange={handleChange}
+//                   placeholder="Enter 11-digit phone number"
+//                   className="w-full px-4 py-3 bg-gray-900 border-2 border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#f7623b] transition"
+//                   required
+//                 />
+//                 <p className="text-xs text-gray-500 mt-1">
+//                   {formData.phoneNumber.length}/11 digits
+//                 </p>
+//               </div>
+
+//               {/* NIN */}
+//               <div>
+//                 <label className="block text-sm font-medium text-gray-300 mb-2">
+//                   Guarantor NIN <span className="text-red-500">*</span>
+//                 </label>
+//                 <input
+//                   type="text"
+//                   name="nin"
+//                   value={formData.nin}
+//                   onChange={handleChange}
+//                   placeholder="Enter 11-digit NIN"
+//                   className="w-full px-4 py-3 bg-gray-900 border-2 border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#f7623b] transition"
+//                   required
+//                 />
+//                 <p className="text-xs text-gray-500 mt-1">
+//                   {formData.nin.length}/11 digits
+//                 </p>
+//               </div>
+
+//               {/* Email */}
+//               <div>
+//                 <label className="block text-sm font-medium text-gray-300 mb-2">
+//                   Guarantor Email Address <span className="text-red-500">*</span>
+//                 </label>
+//                 <input
+//                   type="email"
+//                   name="email"
+//                   value={formData.email}
+//                   onChange={handleChange}
+//                   placeholder="guarantor@example.com"
+//                   className="w-full px-4 py-3 bg-gray-900 border-2 border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#f7623b] transition"
+//                   required
+//                 />
+//               </div>
+//             </div>
+
+//             {/* Submit Button */}
+//             <button
+//               type="submit"
+//               disabled={isLoading}
+//               className="w-full font-bold py-4 text-base rounded-lg text-white transition shadow-lg disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90"
+//               style={{ backgroundColor: "#f7623b" }}
+//             >
+//               {isLoading ? "Submitting..." : "Submit Guarantor Information"}
+//             </button>
+//           </form>
+
+//           {/* Info Notice */}
+//           <div className="bg-gray-900 border-l-4 border-[#f7623b] p-4 rounded">
+//             <p className="text-xs text-gray-400">
+//               <span className="font-semibold text-white">Note:</span> Your guarantor 
+//               will be contacted to verify this information. Please ensure all details 
+//               are accurate.
+//             </p>
+//           </div>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import React, { useState, useEffect, useRef } from "react";
+import { Shield, User, AlertCircle, Camera, CheckCircle, X } from "lucide-react";
+import Swal from "sweetalert2";
+import { useParams, useNavigate } from "react-router-dom";
+
+export default function GuarantorFormPage() {
+  const { token } = useParams();
+  const navigate = useNavigate();
+
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [customerData, setCustomerData] = useState(null);
+  const [error, setError] = useState(null);
+
+  const [formData, setFormData] = useState({
+    bvn: "",
+    phoneNumber: "",
+    nin: "",
+    selfieImage: null,
+  });
+
+  /* -------------------- SELFIE STATES -------------------- */
+  const [showCamera, setShowCamera] = useState(false);
+  const [stream, setStream] = useState(null);
+  const [capturedImage, setCapturedImage] = useState(null);
+  const [liveness, setLiveness] = useState({
+    status: "idle",
+    instruction: "",
+  });
+
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
+
+  /* -------------------- FETCH CUSTOMER -------------------- */
+  useEffect(() => {
+    const fetchCustomerData = async () => {
+      try {
+        const res = await fetch(
+          `http://localhost:8080/api/guarantor/form/${token}`
+        );
+        const data = await res.json();
+
+        if (!data.success) throw new Error(data.message);
+        setCustomerData(data);
+      } catch (err) {
+        setError(err.message || "Invalid link");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCustomerData();
+  }, [token]);
+
+  /* -------------------- FORM HANDLERS -------------------- */
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    if (!/^\d*$/.test(value)) return;
+    if ((name === "bvn" || name === "nin") && value.length > 11) return;
+    setFormData((p) => ({ ...p, [name]: value }));
+  };
+
+  /* -------------------- CAMERA -------------------- */
+  const startCamera = async () => {
+    try {
+      const mediaStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "user" },
+      });
+
+      setStream(mediaStream);
+      videoRef.current.srcObject = mediaStream;
+      setShowCamera(true);
+      startLiveness();
+    } catch {
+      Swal.fire("Camera Error", "Camera access denied", "error");
+    }
+  };
+
+  const stopCamera = () => {
+    stream?.getTracks().forEach((t) => t.stop());
+    setStream(null);
+    setShowCamera(false);
+  };
+
+  /* -------------------- LIVENESS (UI BASED) -------------------- */
+  const startLiveness = () => {
+    const steps = [
+      "Look straight at the camera",
+      "Blink twice",
+      "Turn head left",
+      "Turn head right",
+      "Smile 😊",
+    ];
+
+    let step = 0;
+    setLiveness({ status: "checking", instruction: steps[0] });
+
+    const interval = setInterval(() => {
+      step++;
+      if (step === steps.length) {
+        clearInterval(interval);
+        setLiveness({ status: "passed", instruction: "Verified!" });
+        setTimeout(captureSelfie, 800);
+      } else {
+        setLiveness({ status: "checking", instruction: steps[step] });
+      }
+    }, 2000);
+  };
+
+  /* -------------------- CAPTURE -------------------- */
+  const captureSelfie = () => {
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext("2d").drawImage(video, 0, 0);
+
+    canvas.toBlob((blob) => {
+      setFormData((p) => ({ ...p, selfieImage: blob }));
+      setCapturedImage(URL.createObjectURL(blob));
+      stopCamera();
+    }, "image/jpeg");
+  };
+
+  const retakeSelfie = () => {
+    setCapturedImage(null);
+    setFormData((p) => ({ ...p, selfieImage: null }));
+    startCamera();
+  };
+
+  /* -------------------- VALIDATION -------------------- */
+  const validateForm = () => {
+    if (formData.bvn.length !== 11)
+      return Swal.fire("Error", "BVN must be 11 digits", "error");
+    if (formData.nin.length !== 11)
+      return Swal.fire("Error", "NIN must be 11 digits", "error");
+    if (!formData.selfieImage)
+      return Swal.fire("Error", "Selfie verification required", "error");
+    return true;
+  };
+
+  /* -------------------- SUBMIT -------------------- */
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validateForm()) return;
+
+    setIsSubmitting(true);
+
+    try {
+      const payload = new FormData();
+      payload.append("guarantorBvn", formData.bvn);
+      payload.append("guarantorPhoneNumber", formData.phoneNumber);
+      payload.append("guarantorNin", formData.nin);
+      payload.append("selfieImage", formData.selfieImage);
+
+      const res = await fetch(
+        `http://localhost:8080/api/guarantor/submit/${token}`,
+        {
+          method: "POST",
+          body: payload,
+        }
+      );
+
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message);
+
+      Swal.fire("Success", "Submitted successfully", "success").then(() =>
+        navigate(`/guarantor/otp/${token}`)
+      );
+    } catch (err) {
+      Swal.fire("Error", err.message, "error");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  /* -------------------- UI -------------------- */
+  if (isLoading) return <div className="text-center">Loading...</div>;
+  if (error) return <div className="text-center text-red-500">{error}</div>;
+
+  return (
+    <div className="min-h-screen p-6" style={{ background: "#f7623b" }}>
+      <div className="max-w-3xl mx-auto bg-black p-8 rounded-xl">
+        <h1 className="text-2xl text-[#f7623b] font-bold mb-6">
+          Guarantor Verification
+        </h1>
+
+        {customerData && (
+            <div className="bg-gray-900 rounded-lg p-6 border border-gray-800 mb-6">
+              <h2 className="text-lg font-semibold text-white mb-4">
+                Customer Information
+              </h2>
+          
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                <div>
+                  <p className="text-gray-400">Customer Name</p>
+                  <p className="text-white font-medium">
+                    {customerData.customerFirstName} {customerData.customerLastName}
+                  </p>
+                </div>
+          
+                <div>
+                  <p className="text-gray-400">Plan</p>
+                  <p className="text-white font-medium">
+                    {customerData.customerPlan}
+                  </p>
+                </div>
+          
+                <div>
+                  <p className="text-gray-400">BVN</p>
+                  <p className="text-white font-medium">
+                    {customerData.customerBvn}
+                  </p>
+                </div>
+          
+                <div>
+                  <p className="text-gray-400">Duration</p>
+                  <p className="text-white font-medium">
+                    {customerData.customerInstallmentDuration}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+          
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* INPUTS */}
+          {["bvn", "phoneNumber", "nin"].map((f) => (
+            <input
+              key={f}
+              name={f}
+              value={formData[f]}
+              onChange={handleChange}
+              placeholder={f.toUpperCase()}
+              className="w-full p-3 bg-gray-900 text-white rounded"
+              required
+            />
+          ))}
+
+          {/* SELFIE */}
+          {!capturedImage && !showCamera && (
+            <button
+              type="button"
+              onClick={startCamera}
+              className="w-full bg-[#f7623b] p-3 rounded text-white"
+            >
+              <Camera className="inline mr-2" /> Start Selfie Verification
+            </button>
+          )}
+
+          {showCamera && (
+            <div className="relative">
+              <video ref={videoRef} autoPlay className="rounded w-full" />
+              <div className="absolute top-2 left-2 bg-black/60 text-white px-3 py-1 rounded">
+                {liveness.instruction}
+              </div>
+              <button
+                onClick={stopCamera}
+                className="absolute top-2 right-2 bg-red-500 p-2 rounded"
+              >
+                <X />
+              </button>
+            </div>
+          )}
+
+          {capturedImage && (
+            <div>
+              <img src={capturedImage} className="rounded border-green-500" />
+              <button
+                type="button"
+                onClick={retakeSelfie}
+                className="mt-2 bg-gray-700 p-2 rounded w-full text-white"
+              >
+                Retake Selfie
+              </button>
+            </div>
+          )}
+
+          <canvas ref={canvasRef} className="hidden" />
+
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full bg-[#f7623b] p-4 rounded text-white font-bold"
+          >
+            {isSubmitting ? "Submitting..." : "Submit"}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}

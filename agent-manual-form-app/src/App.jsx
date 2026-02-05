@@ -14,7 +14,8 @@ import AgentProofReadOnly from "./components/agentConfirmationPage/ConfirmForKoo
 import AfterSales from "./components/afterSalesPage/AfterSales.jsx";
 import InventoryConfirmation from "./components/inventory/InventoryConfirmation.jsx";
 import DeliveryScheduling from "./components/delivery/DeliveryScheduling.jsx";
-import InstallationConfirmation from "./components/delivery/InstallationConfirmation.jsx"; //
+import InstallationConfirmation from "./components/delivery/InstallationConfirmation.jsx";
+import RepaymentPaymentForm from "./components/payments/RepaymentPaymentForm.jsx"; //
 
 function App(){
     return <>
@@ -56,6 +57,10 @@ function App(){
 
                 {/* Installation Confirmation route */}
                 <Route path="/installation-confirmation" element={<InstallationConfirmation />} />
+
+
+
+                <Route path="/repayment-payment" element={<RepaymentPaymentForm />} />
 
 
                 {/* 404 route */}

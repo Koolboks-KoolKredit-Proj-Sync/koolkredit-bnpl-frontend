@@ -3197,7 +3197,7 @@ export default function AgentFollowUpForm() {
     const [customerEmail, setCustomerEmail] = useState("");
     const [guarantorEmail, setGuarantorEmail] = useState("");
 
-    const BACKEND_API_URL = 'http://localhost:8080';
+    const BACKEND_API_URL = 'https://koolkredit-bnpl-backend-gqbj.onrender.com';
 
     const handleUtilityUpload = (e) => {
         const file = e.target.files[0];

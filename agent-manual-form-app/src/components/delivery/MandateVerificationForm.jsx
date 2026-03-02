@@ -600,7 +600,7 @@ function MandateVerificationForm() {
     const [transferConfirmed, setTransferConfirmed] = useState(false);
     const [isConfirmingTransfer, setIsConfirmingTransfer] = useState(false);
 
-    const BACKEND_API_URL = 'http://localhost:8080/v1/api';
+    const BACKEND_API_URL = 'https://koolkredit-bnpl-backend-gqbj.onrender.com/v1/api';
 
     const verificationOptions = [
         { value: 'bvn', label: 'BVN (Bank Verification Number)' },

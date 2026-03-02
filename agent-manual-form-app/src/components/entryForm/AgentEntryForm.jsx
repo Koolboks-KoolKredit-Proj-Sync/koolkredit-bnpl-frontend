@@ -3819,7 +3819,7 @@ function AgentEntryForm() {
     }
 
     try {
-      const response = await fetch('http://localhost:8080/api/agent-entry', {
+      const response = await fetch('https://koolkredit-bnpl-backend-gqbj.onrender.com/api/agent-entry', {
         method: 'POST',
         body: formDataToSend
       });

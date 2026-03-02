@@ -551,7 +551,7 @@ export default function CustomerWaitingPage() {
         const checkGuarantorStatus = async () => {
             try {
                 const response = await fetch(
-                    `http://localhost:8080/api/guarantor/status/${customer.bvn}`
+                    `https://koolkredit-bnpl-backend-gqbj.onrender.com/api/guarantor/status/${customer.bvn}`
                 );
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 

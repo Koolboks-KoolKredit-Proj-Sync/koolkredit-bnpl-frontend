@@ -736,7 +736,7 @@ function HomePage() {
     const [searchTerm, setSearchTerm] = useState('');
 
     const MONO_API_KEY = 'live_sk_z2zqd4k2ayqv9z9t0dqi';
-    const BACKEND_API_URL = 'http://localhost:8080/api/debit-mandate'; // Update with your backend URL
+    const BACKEND_API_URL = 'https://koolkredit-bnpl-backend-gqbj.onrender.com/api/debit-mandate'; // Update with your backend URL
 
     // Fetch banks list when dropdown is opened
     const fetchBanks = async () => {

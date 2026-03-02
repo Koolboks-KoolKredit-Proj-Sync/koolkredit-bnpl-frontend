@@ -533,7 +533,8 @@ import { Camera, Upload, User, Mail, Phone, DollarSign, Calendar, MapPin, Store,
 export default function AgentProofForm() {
     // CONFIGURATION: Both backend endpoints
     const DJANGO_API_URL = 'http://127.0.0.1:8000';
-    const SPRING_API_URL = 'http://127.0.0.1:8080';
+    //const SPRING_API_URL = 'http://127.0.0.1:8080';
+    const SPRING_API_URL = 'https://koolkredit-bnpl-backend-gqbj.onrender.com'
 
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);

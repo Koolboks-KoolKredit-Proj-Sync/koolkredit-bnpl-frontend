@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { CreditCard, DollarSign, Lock, User, Phone, Mail, AlertCircle } from 'lucide-react';
 
+
+
+
+
+
+
 export default function RepaymentPaymentForm() {
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -18,7 +24,8 @@ export default function RepaymentPaymentForm() {
         loan_ref: '',
         instalment_number: 0,
         token: '',
-        product_brand: 'koolboks' // ✅ Use existing valid choice
+        has_late_fee: false,
+        late_fee: 0
     });
 
     // Extract token from URL
@@ -32,30 +39,33 @@ export default function RepaymentPaymentForm() {
             return;
         }
 
-        // Validate token with Django
         validateToken(token);
     }, []);
 
     const validateToken = async (token) => {
         try {
-            //const response = await fetch(`http://127.0.0.1:8000/v1/api/validate-payment-token/${token}`);
+            console.log('=== VALIDATING TOKEN ===');
+            console.log('Token:', token);
+
             const response = await fetch(`http://127.0.0.1:8080/v1/api/payment-tokens/validate/${token}`);
             const data = await response.json();
 
+            console.log('Validation response:', data);
+
             if (response.ok && data.valid) {
-                // Token is valid - pre-fill form
                 const instalmentOrdinal = getOrdinal(data.instalmentNumber);
 
                 setFormData({
                     customer_name: data.customerName,
-                    payment_description: `${instalmentOrdinal} Instalment`,
+                    payment_description: `${instalmentOrdinal} Instalment${data.hasLateFee ? ' (with late fee)' : ''}`,
                     mobile_number: data.phone,
                     email: data.email,
                     amount: data.amount,
                     loan_ref: data.loanReference,
                     instalment_number: data.instalmentNumber,
                     token: token,
-                    product_brand: 'koolboks' // ✅ Use existing valid choice
+                    has_late_fee: data.hasLateFee || false,
+                    late_fee: data.lateFee || 0
                 });
 
                 setTokenValid(true);
@@ -83,12 +93,10 @@ export default function RepaymentPaymentForm() {
     const handleChange = (e) => {
         const { name, value } = e.target;
 
-        // Only allow digits for mobile number
         if (name === 'mobile_number' && !/^\d*$/.test(value)) {
             return;
         }
 
-        // Limit mobile number to 11 digits
         if (name === 'mobile_number' && value.length > 11) {
             return;
         }
@@ -124,18 +132,15 @@ export default function RepaymentPaymentForm() {
         setIsSubmitting(true);
 
         try {
-            // ✅ Loan Repayment payload for CreateLoanRepaymentPaymentView
             const payload = {
                 customer_name: formData.customer_name,
                 email: formData.email,
                 mobile_number: formData.mobile_number,
-                token: formData.token,  // ✅ Required by CreateLoanRepaymentPaymentView
-                // Note: loan_ref, instalment_number, amount come from token validation
+                token: formData.token
             };
 
             console.log('📤 Sending payload:', payload);
 
-            // Submit to Django backend - LOAN REPAYMENT endpoint
             const response = await fetch('http://127.0.0.1:8000/v1/api/loan-repayment-payment/', {
                 method: 'POST',
                 headers: {
@@ -146,21 +151,14 @@ export default function RepaymentPaymentForm() {
 
             const data = await response.json();
 
-            console.log('📥 Full Django Response:', JSON.stringify(data, null, 2));
+            console.log('📥 Django Response:', data);
 
             if (response.ok && data.ref) {
-                // Initialize Paystack payment
                 initializePaystack(data);
             } else {
-                // ✅ Better error handling - show full details
-                console.error('Server response:', data);
-                console.error('Full error details:', JSON.stringify(data, null, 2));
-
-                // Extract specific error messages
                 let errorMsg = 'Failed to create payment';
 
                 if (data.errors) {
-                    // Django REST Framework validation errors
                     const errorFields = Object.keys(data.errors);
                     errorMsg = errorFields.map(field => {
                         const fieldErrors = Array.isArray(data.errors[field])
@@ -168,8 +166,6 @@ export default function RepaymentPaymentForm() {
                             : data.errors[field];
                         return `${field}: ${fieldErrors}`;
                     }).join('\n');
-                } else if (data.agent_id) {
-                    errorMsg = Array.isArray(data.agent_id) ? data.agent_id[0] : data.agent_id;
                 } else if (data.message) {
                     errorMsg = data.message;
                 }
@@ -192,16 +188,12 @@ export default function RepaymentPaymentForm() {
 
         const PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
 
-        // ✅ FIX: Ensure amount is in kobo (integer)
-        // Django might return 'amount_in_kobo' or 'amount_value'
         let amountInKobo;
-
         if (paymentData.amount_in_kobo) {
             amountInKobo = parseInt(paymentData.amount_in_kobo);
         } else if (paymentData.amount_value) {
             amountInKobo = parseInt(paymentData.amount_value);
         } else if (paymentData.amount) {
-            // If only amount is provided, convert Naira to kobo
             amountInKobo = parseInt(paymentData.amount) * 100;
         } else {
             alert('Invalid payment amount. Please try again.');
@@ -211,16 +203,14 @@ export default function RepaymentPaymentForm() {
 
         console.log('💰 Paystack amount (kobo):', amountInKobo);
         console.log('💳 Paystack reference:', paymentData.ref);
-        console.log('📧 Paystack email:', paymentData.email);
 
         const handler = window.PaystackPop.setup({
             key: PUBLIC_KEY,
             email: paymentData.email,
-            amount: amountInKobo,  // ✅ Must be integer in kobo
+            amount: amountInKobo,
             ref: paymentData.ref,
             currency: 'NGN',
             callback: function(response) {
-                // Payment successful
                 handlePaymentSuccess(response.reference);
             },
             onClose: function() {
@@ -232,35 +222,70 @@ export default function RepaymentPaymentForm() {
         handler.openIframe();
     };
 
+    // ✅ FIXED: Now verifies payment with Django
     const handlePaymentSuccess = async (paymentReference) => {
         try {
-            // Mark token as used
-            await fetch(`http://127.0.0.1:8080/v1/api/payment-tokens/mark-used/${formData.token}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    paymentReference: paymentReference
-                })
-            });
+            console.log('=== PAYMENT SUCCESS CALLBACK ===');
+            console.log('Payment Reference:', paymentReference);
 
-            // Set payment details for success page
+            // ✅ STEP 1: Verify payment with Django backend
+            console.log('📞 Calling Django verification endpoint...');
+
+            const verifyResponse = await fetch(
+                'http://127.0.0.1:8000/v1/api/verify-loan-repayment-payment/',
+                {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ reference: paymentReference })
+                }
+            );
+
+            const verifyData = await verifyResponse.json();
+            console.log('📥 Django verification response:', verifyData);
+
+            if (!verifyResponse.ok || !verifyData.success) {
+                throw new Error(verifyData.message || 'Payment verification failed');
+            }
+
+            console.log('✅ Payment verified in Django');
+
+            // ✅ STEP 2: Set payment details for success page
             setPaymentDetails({
                 instalmentNumber: formData.instalment_number,
                 instalmentOrdinal: getOrdinal(formData.instalment_number),
                 amount: formData.amount,
                 loanRef: formData.loan_ref,
                 paymentReference: paymentReference,
-                customerName: formData.customer_name
+                customerName: formData.customer_name,
+                hasLateFee: formData.has_late_fee,
+                lateFee: formData.late_fee
             });
 
-            // Show success page with fireworks!
+            // ✅ STEP 3: Show success page with fireworks!
             setPaymentSuccess(true);
 
+            console.log('🎉 Success page displayed');
+
         } catch (error) {
-            console.error('Error marking token as used:', error);
-            // Still show success since payment went through
+            console.error('❌ Error in handlePaymentSuccess:', error);
+
+            alert(
+                'Payment was successful with Paystack, but verification encountered an issue. ' +
+                'Please contact support with reference: ' + paymentReference
+            );
+
+            // Still show success since Paystack payment went through
+            setPaymentDetails({
+                instalmentNumber: formData.instalment_number,
+                instalmentOrdinal: getOrdinal(formData.instalment_number),
+                amount: formData.amount,
+                loanRef: formData.loan_ref,
+                paymentReference: paymentReference,
+                customerName: formData.customer_name,
+                hasLateFee: formData.has_late_fee,
+                lateFee: formData.late_fee
+            });
+
             setPaymentSuccess(true);
         }
     };
@@ -273,9 +298,288 @@ export default function RepaymentPaymentForm() {
         document.body.appendChild(script);
 
         return () => {
-            document.body.removeChild(script);
+            if (document.body.contains(script)) {
+                document.body.removeChild(script);
+            }
         };
     }, []);
+
+
+// export default function RepaymentPaymentForm() {
+//     const [isLoading, setIsLoading] = useState(true);
+//     const [isSubmitting, setIsSubmitting] = useState(false);
+//     const [tokenValid, setTokenValid] = useState(false);
+//     const [tokenError, setTokenError] = useState(null);
+//     const [paymentSuccess, setPaymentSuccess] = useState(false);
+//     const [paymentDetails, setPaymentDetails] = useState(null);
+//
+//     const [formData, setFormData] = useState({
+//         customer_name: '',
+//         payment_description: '',
+//         mobile_number: '',
+//         email: '',
+//         amount: '',
+//         loan_ref: '',
+//         instalment_number: 0,
+//         token: '',
+//         product_brand: 'koolboks' // ✅ Use existing valid choice
+//     });
+//
+//     // Extract token from URL
+//     useEffect(() => {
+//         const urlParams = new URLSearchParams(window.location.search);
+//         const token = urlParams.get('token');
+//
+//         if (!token) {
+//             setTokenError('invalid');
+//             setIsLoading(false);
+//             return;
+//         }
+//
+//         // Validate token with Django
+//         validateToken(token);
+//     }, []);
+//
+//     const validateToken = async (token) => {
+//         try {
+//             //const response = await fetch(`http://127.0.0.1:8000/v1/api/validate-payment-token/${token}`);
+//             const response = await fetch(`http://127.0.0.1:8080/v1/api/payment-tokens/validate/${token}`);
+//             const data = await response.json();
+//
+//             if (response.ok && data.valid) {
+//                 // Token is valid - pre-fill form
+//                 const instalmentOrdinal = getOrdinal(data.instalmentNumber);
+//
+//                 setFormData({
+//                     customer_name: data.customerName,
+//                     payment_description: `${instalmentOrdinal} Instalment`,
+//                     mobile_number: data.phone,
+//                     email: data.email,
+//                     amount: data.amount,
+//                     loan_ref: data.loanReference,
+//                     instalment_number: data.instalmentNumber,
+//                     token: token,
+//                     product_brand: 'koolboks' // ✅ Use existing valid choice
+//                 });
+//
+//                 setTokenValid(true);
+//             } else {
+//                 setTokenError(data.error || 'invalid');
+//             }
+//         } catch (error) {
+//             console.error('Token validation error:', error);
+//             setTokenError('server_error');
+//         } finally {
+//             setIsLoading(false);
+//         }
+//     };
+//
+//     const getOrdinal = (n) => {
+//         if (n >= 11 && n <= 13) return `${n}th`;
+//         switch (n % 10) {
+//             case 1: return `${n}st`;
+//             case 2: return `${n}nd`;
+//             case 3: return `${n}rd`;
+//             default: return `${n}th`;
+//         }
+//     };
+//
+//     const handleChange = (e) => {
+//         const { name, value } = e.target;
+//
+//         // Only allow digits for mobile number
+//         if (name === 'mobile_number' && !/^\d*$/.test(value)) {
+//             return;
+//         }
+//
+//         // Limit mobile number to 11 digits
+//         if (name === 'mobile_number' && value.length > 11) {
+//             return;
+//         }
+//
+//         setFormData(prev => ({
+//             ...prev,
+//             [name]: value
+//         }));
+//     };
+//
+//     const validateForm = () => {
+//         if (!formData.customer_name.trim()) {
+//             alert('Please enter your name');
+//             return false;
+//         }
+//
+//         if (formData.mobile_number.length !== 11) {
+//             alert('Mobile number must be exactly 11 digits');
+//             return false;
+//         }
+//
+//         if (!formData.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+//             alert('Please enter a valid email address');
+//             return false;
+//         }
+//
+//         return true;
+//     };
+//
+//     const handleSubmit = async () => {
+//         if (!validateForm()) return;
+//
+//         setIsSubmitting(true);
+//
+//         try {
+//             // ✅ Loan Repayment payload for CreateLoanRepaymentPaymentView
+//             const payload = {
+//                 customer_name: formData.customer_name,
+//                 email: formData.email,
+//                 mobile_number: formData.mobile_number,
+//                 token: formData.token,  // ✅ Required by CreateLoanRepaymentPaymentView
+//                 // Note: loan_ref, instalment_number, amount come from token validation
+//             };
+//
+//             console.log('📤 Sending payload:', payload);
+//
+//             // Submit to Django backend - LOAN REPAYMENT endpoint
+//             const response = await fetch('http://127.0.0.1:8000/v1/api/loan-repayment-payment/', {
+//                 method: 'POST',
+//                 headers: {
+//                     'Content-Type': 'application/json',
+//                 },
+//                 body: JSON.stringify(payload),
+//             });
+//
+//             const data = await response.json();
+//
+//             console.log('📥 Full Django Response:', JSON.stringify(data, null, 2));
+//
+//             if (response.ok && data.ref) {
+//                 // Initialize Paystack payment
+//                 initializePaystack(data);
+//             } else {
+//                 // ✅ Better error handling - show full details
+//                 console.error('Server response:', data);
+//                 console.error('Full error details:', JSON.stringify(data, null, 2));
+//
+//                 // Extract specific error messages
+//                 let errorMsg = 'Failed to create payment';
+//
+//                 if (data.errors) {
+//                     // Django REST Framework validation errors
+//                     const errorFields = Object.keys(data.errors);
+//                     errorMsg = errorFields.map(field => {
+//                         const fieldErrors = Array.isArray(data.errors[field])
+//                             ? data.errors[field].join(', ')
+//                             : data.errors[field];
+//                         return `${field}: ${fieldErrors}`;
+//                     }).join('\n');
+//                 } else if (data.agent_id) {
+//                     errorMsg = Array.isArray(data.agent_id) ? data.agent_id[0] : data.agent_id;
+//                 } else if (data.message) {
+//                     errorMsg = data.message;
+//                 }
+//
+//                 throw new Error(errorMsg);
+//             }
+//         } catch (error) {
+//             console.error('Payment creation error:', error);
+//             alert(error.message || 'Failed to create payment. Please try again.');
+//             setIsSubmitting(false);
+//         }
+//     };
+//
+//     const initializePaystack = (paymentData) => {
+//         if (typeof window.PaystackPop === 'undefined') {
+//             alert('Payment gateway is loading. Please try again in a moment.');
+//             setIsSubmitting(false);
+//             return;
+//         }
+//
+//         const PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
+//
+//         // ✅ FIX: Ensure amount is in kobo (integer)
+//         // Django might return 'amount_in_kobo' or 'amount_value'
+//         let amountInKobo;
+//
+//         if (paymentData.amount_in_kobo) {
+//             amountInKobo = parseInt(paymentData.amount_in_kobo);
+//         } else if (paymentData.amount_value) {
+//             amountInKobo = parseInt(paymentData.amount_value);
+//         } else if (paymentData.amount) {
+//             // If only amount is provided, convert Naira to kobo
+//             amountInKobo = parseInt(paymentData.amount) * 100;
+//         } else {
+//             alert('Invalid payment amount. Please try again.');
+//             setIsSubmitting(false);
+//             return;
+//         }
+//
+//         console.log('💰 Paystack amount (kobo):', amountInKobo);
+//         console.log('💳 Paystack reference:', paymentData.ref);
+//         console.log('📧 Paystack email:', paymentData.email);
+//
+//         const handler = window.PaystackPop.setup({
+//             key: PUBLIC_KEY,
+//             email: paymentData.email,
+//             amount: amountInKobo,  // ✅ Must be integer in kobo
+//             ref: paymentData.ref,
+//             currency: 'NGN',
+//             callback: function(response) {
+//                 // Payment successful
+//                 handlePaymentSuccess(response.reference);
+//             },
+//             onClose: function() {
+//                 setIsSubmitting(false);
+//                 alert('Payment window closed. You can try again when ready.');
+//             }
+//         });
+//
+//         handler.openIframe();
+//     };
+//
+//     const handlePaymentSuccess = async (paymentReference) => {
+//         try {
+//             // Mark token as used
+//             await fetch(`http://127.0.0.1:8080/v1/api/payment-tokens/mark-used/${formData.token}`, {
+//                 method: 'POST',
+//                 headers: {
+//                     'Content-Type': 'application/json',
+//                 },
+//                 body: JSON.stringify({
+//                     paymentReference: paymentReference
+//                 })
+//             });
+//
+//             // Set payment details for success page
+//             setPaymentDetails({
+//                 instalmentNumber: formData.instalment_number,
+//                 instalmentOrdinal: getOrdinal(formData.instalment_number),
+//                 amount: formData.amount,
+//                 loanRef: formData.loan_ref,
+//                 paymentReference: paymentReference,
+//                 customerName: formData.customer_name
+//             });
+//
+//             // Show success page with fireworks!
+//             setPaymentSuccess(true);
+//
+//         } catch (error) {
+//             console.error('Error marking token as used:', error);
+//             // Still show success since payment went through
+//             setPaymentSuccess(true);
+//         }
+//     };
+//
+//     // Load Paystack script
+//     useEffect(() => {
+//         const script = document.createElement('script');
+//         script.src = 'https://js.paystack.co/v1/inline.js';
+//         script.async = true;
+//         document.body.appendChild(script);
+//
+//         return () => {
+//             document.body.removeChild(script);
+//         };
+//     }, []);
 
     // Loading State
     if (isLoading) {
@@ -341,7 +645,7 @@ export default function RepaymentPaymentForm() {
                 <div className="bg-gray-900 rounded-lg p-6 mb-6 border-2 border-[#f7623b]">
                     <div className="text-center">
                         <p className="text-gray-400 text-sm mb-2">Amount Due</p>
-                        <div className="flex items-center justify-center gap-2">
+ npm                       <div className="flex items-center justify-center gap-2">
                             <DollarSign className="w-6 h-6 text-[#f7623b]" />
                             <h2 className="text-3xl font-bold text-white">
                                 ₦{Number(formData.amount).toLocaleString()}

@@ -15,62 +15,76 @@ import AfterSales from "./components/afterSalesPage/AfterSales.jsx";
 import InventoryConfirmation from "./components/inventory/InventoryConfirmation.jsx";
 import DeliveryScheduling from "./components/delivery/DeliveryScheduling.jsx";
 import InstallationConfirmation from "./components/delivery/InstallationConfirmation.jsx";
-import RepaymentPaymentForm from "./components/payments/RepaymentPaymentForm.jsx"; //
+import RepaymentPaymentForm from "./components/payments/RepaymentPaymentForm.jsx";
+import HomePage from "./components/HomePage.jsx";
+import Logo from "./components/LogoWithVariant.jsx";
+import MandateVerificationForm from "./components/delivery/MandateVerificationForm.jsx";
 
 function App(){
-    return <>
-        <BrowserRouter>
-            <Routes>
-                <Route path="/" element={<AgentEntryForm />} />
-                <Route path="/agent-followup" element={<AgentFollowUpForm />} />
+    return (
+        <>
+            {/* Fixed logo overlay - floats on top of all pages */}
+            {/*<div className="fixed top-4 left-4 z-50">*/}
+            {/*    <Logo size="large" />*/}
+            {/*</div>*/}
 
-                {/* Customer routes */}
-                <Route path="/customer-otp" element={<CustomerOtpVerification />} />
-                <Route path="/customer-waiting" element={<CustomerWaitingPage />} />
-                <Route path="/bnpl-approved" element={<BnplApproved />} />
-
-                {/* Guarantor routes (opened on guarantor's device) */}
-                <Route path="/guarantor/form/:token" element={<GuarantorFormPage />} />
-                <Route path="/guarantor/otp/:token" element={<GuarantorOtpPage />} />
-
-                {/* initial PAYMENT route  */}
-                <Route path="/pay/pay" element={<BNPLPaymentForm />} />
-
-                {/* Agent proof submission route */}
-                <Route path="/agent-proof/:paymentId" element={<AgentProofForm />} />
-
-                {/* Read-only route */}
-                <Route path="/agent-proof-readonly/:paymentId" element={<AgentProofReadOnly />} />
-
-                {/* After Sales Paygo Configuration route - ADD THIS */}
-                <Route path="/after-sales" element={<AfterSales />} />
+            <div className="hidden sm:block fixed sm:top-3 sm:left-3 z-50 pointer-events-none">
+                <Logo size="large" />
+            </div>
 
 
-                {/* Inventory Stock Confirmation route */}
-                <Route path="/inventory-confirmation" element={<InventoryConfirmation />} />
+            <BrowserRouter>
+                <Routes>
+                    {/* Home page - Account verification */}
+                    <Route path="/" element={<HomePage />} />
 
+                    {/* Agent entry form - Pre-filled with customer data */}
+                    <Route path="/agent-entry" element={<AgentEntryForm />} />
 
+                    {/*<Route path="/" element={<AgentEntryForm />} />*/}
+                    <Route path="/agent-followup" element={<AgentFollowUpForm />} />
 
-                {/* Delivery Scheduling route */}
-                <Route path="/delivery-scheduling" element={<DeliveryScheduling />} />
+                    {/* Customer routes */}
+                    <Route path="/customer-otp" element={<CustomerOtpVerification />} />
+                    <Route path="/customer-waiting" element={<CustomerWaitingPage />} />
+                    <Route path="/bnpl-approved" element={<BnplApproved />} />
 
+                    {/* Guarantor routes (opened on guarantor's device) */}
+                    <Route path="/guarantor/form/:token" element={<GuarantorFormPage />} />
+                    <Route path="/guarantor/otp/:token" element={<GuarantorOtpPage />} />
 
-                {/* Installation Confirmation route */}
-                <Route path="/installation-confirmation" element={<InstallationConfirmation />} />
+                    {/* initial PAYMENT route  */}
+                    <Route path="/pay/pay" element={<BNPLPaymentForm />} />
 
+                    {/* Agent proof submission route */}
+                    <Route path="/agent-proof/:paymentId" element={<AgentProofForm />} />
 
+                    {/* Read-only route */}
+                    <Route path="/agent-proof-readonly/:paymentId" element={<AgentProofReadOnly />} />
 
-                <Route path="/repayment-payment" element={<RepaymentPaymentForm />} />
+                    {/* After Sales Paygo Configuration route - ADD THIS */}
+                    <Route path="/after-sales" element={<AfterSales />} />
 
+                    {/* Inventory Stock Confirmation route */}
+                    <Route path="/inventory-confirmation" element={<InventoryConfirmation />} />
 
-                {/* 404 route */}
-                <Route path="*" element={<NotFound />} />
+                    {/* Delivery Scheduling route */}
+                    <Route path="/delivery-scheduling" element={<DeliveryScheduling />} />
 
-            </Routes>
-        </BrowserRouter>
-    </>
+                    {/* Installation Confirmation route */}
+                    <Route path="/installation-confirmation" element={<InstallationConfirmation />} />
+
+                    <Route path="/repayment-payment" element={<RepaymentPaymentForm />} />
+
+                    <Route path="/mandate-form" element={<MandateVerificationForm />} />
+
+                    {/* 404 route */}
+                    <Route path="*" element={<NotFound />} />
+                </Routes>
+            </BrowserRouter>
+        </>
+    );
 }
-
 
 // Simple 404 component
 function NotFound() {

@@ -1,0 +1,21 @@
+{
+  "name": "Kool Kredit",
+  "short_name": "Kool Kredit",
+  "description": "Kool Kredit - Your trusted credit partner",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f7623b",
+  "theme_color": "#f7623b",
+  "icons": [
+    {
+      "src": "/favicon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

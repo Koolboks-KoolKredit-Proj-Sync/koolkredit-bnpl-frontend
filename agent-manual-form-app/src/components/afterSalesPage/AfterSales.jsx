@@ -435,7 +435,7 @@ import React, { useState } from 'react';
 import { CheckCircle, Calendar, User, Mail, Phone, Store, MapPin, DollarSign, Package } from 'lucide-react';
 
 export default function AfterSales() {
-    const DJANGO_API_URL = 'http://127.0.0.1:8000';
+    const DJANGO_API_URL = 'https://koolkredit-payment-integration-production.up.railway.app';
 
     const [isSubmitting, setIsSubmitting] = useState(false);
 

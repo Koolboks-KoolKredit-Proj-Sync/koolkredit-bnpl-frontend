@@ -532,7 +532,7 @@ import { Camera, Upload, User, Mail, Phone, DollarSign, Calendar, MapPin, Store,
 
 export default function AgentProofForm() {
     // CONFIGURATION: Both backend endpoints
-    const DJANGO_API_URL = 'http://127.0.0.1:8000';
+    const DJANGO_API_URL = 'https://koolkredit-payment-integration-production.up.railway.app';
     //const SPRING_API_URL = 'http://127.0.0.1:8080';
     const SPRING_API_URL = 'https://web-production-9f730.up.railway.app';
 
@@ -726,7 +726,7 @@ export default function AgentProofForm() {
             // Check if both succeeded
             if (djangoResponse.ok && springResponse.ok) {
                 alert('Proof submitted successfully to both systems! Email sent to After Sales Team.');
-                window.location.href = '/agent-dashboard';
+                window.location.href = '/https://koolkredit-payment-integration-production.up.railway.app/admin/login/?next=/admin/';
             } else if (!djangoResponse.ok && springResponse.ok) {
                 throw new Error(`Django submission failed: ${djangoData.message || 'Unknown error'}`);
             } else if (djangoResponse.ok && !springResponse.ok) {

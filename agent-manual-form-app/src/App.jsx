@@ -38,6 +38,8 @@ function App(){
                     {/* Home page - Account verification */}
                     <Route path="/" element={<HomePage />} />
 
+
+
                     {/* Agent entry form - Pre-filled with customer data */}
                     <Route path="/agent-entry" element={<AgentEntryForm />} />
 

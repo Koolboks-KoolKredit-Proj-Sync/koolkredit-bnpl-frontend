@@ -141,7 +141,7 @@ export default function RepaymentPaymentForm() {
 
             console.log('📤 Sending payload:', payload);
 
-            const response = await fetch('http://127.0.0.1:8000/v1/api/loan-repayment-payment/', {
+            const response = await fetch('https://koolkredit-payment-integration-production.up.railway.app/v1/api/loan-repayment-payment/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -232,7 +232,7 @@ export default function RepaymentPaymentForm() {
             console.log('📞 Calling Django verification endpoint...');
 
             const verifyResponse = await fetch(
-                'http://127.0.0.1:8000/v1/api/verify-loan-repayment-payment/',
+                'https://koolkredit-payment-integration-production.up.railway.app/v1/api/verify-loan-repayment-payment/',
                 {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },

@@ -222,7 +222,7 @@ import { User, Mail, Phone, DollarSign, Calendar } from 'lucide-react';
 
 export default function AgentProofReadOnly() {
     // CONFIGURATION: Both backend endpoints
-    const DJANGO_API_URL = 'http://127.0.0.1:8000';
+    const DJANGO_API_URL = 'https://koolkredit-payment-integration-production.up.railway.app';
     //const SPRING_API_URL = 'http://127.0.0.1:8080';
     const SPRING_API_URL = 'https://web-production-9f730.up.railway.app';
 

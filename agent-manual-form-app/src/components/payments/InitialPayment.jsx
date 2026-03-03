@@ -98,7 +98,7 @@ export default function BNPLPaymentForm() {
 
         try {
             // Submit to Django backend
-            const response = await fetch('http://127.0.0.1:8000/v1/api/bnpl-payment/', {
+            const response = await fetch('https://koolkredit-payment-integration-production.up.railway.app/v1/api/bnpl-payment/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -150,7 +150,7 @@ export default function BNPLPaymentForm() {
             currency: 'NGN',
             callback: function(response) {
                 // Payment successful - redirect to verification
-                window.location.href = `http://127.0.0.1:8000/v1/verify-payment/${paymentData.ref}/`;
+                window.location.href = `https://koolkredit-payment-integration-production.up.railway.app/v1/verify-payment/${paymentData.ref}/`;
             },
             onClose: function() {
                 setIsLoading(false);

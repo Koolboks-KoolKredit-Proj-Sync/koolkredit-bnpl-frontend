@@ -735,7 +735,7 @@ function HomePage() {
     const [showBankDropdown, setShowBankDropdown] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
 
-    const MONO_API_KEY = 'live_sk_z2zqd4k2ayqv9z9t0dqi';
+    const MONO_API_KEY = process.env.MONO_API_KEY;
     const BACKEND_API_URL = 'https://web-production-9f730.up.railway.app/api/debit-mandate'; // Update with your backend URL
 
     // Fetch banks list when dropdown is opened

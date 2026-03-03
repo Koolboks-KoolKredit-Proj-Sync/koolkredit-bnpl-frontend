@@ -25,7 +25,7 @@ export default function GuarantorFormPage() {
                 setIsLoading(true);
 
                 // ✅ STEP 1: Validate token and get basic info
-                const tokenResponse = await axios.get(`https://koolkredit-bnpl-backend-gqbj.onrender.com/api/guarantor/form/${token}`);
+                const tokenResponse = await axios.get(`https://web-production-9f730.up.railway.app/api/guarantor/form/${token}`);
 
                 if (!tokenResponse.data.success) {
                     setError(tokenResponse.data.message || "Invalid or expired link");
@@ -43,7 +43,7 @@ export default function GuarantorFormPage() {
                 }
 
                 // ✅ STEP 2: Get detailed customer information using BVN
-                const detailsResponse = await axios.get("https://koolkredit-bnpl-backend-gqbj.onrender.com/api/guarantor/context", {
+                const detailsResponse = await axios.get("https://web-production-9f730.up.railway.app/api/guarantor/context", {
                     params: { bvn: customerBvn }
                 });
 
@@ -125,7 +125,7 @@ export default function GuarantorFormPage() {
 
         try {
             const response = await axios.post(
-                `http://localhost:8080/api/guarantor/submit/${token}`,
+                `https://web-production-9f730.up.railway.app/api/guarantor/submit/${token}`,
                 {
                     guarantorBvn: formData.bvn,
                     guarantorPhoneNumber: formData.phoneNumber,

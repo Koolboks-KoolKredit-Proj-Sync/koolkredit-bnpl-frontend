@@ -1127,7 +1127,7 @@ function InstallationConfirmation() {
     const [isPolling, setIsPolling] = useState(false);
     const pollingRef = useRef(null);
 
-    const BACKEND_API_URL = 'https://koolkredit-bnpl-backend-gqbj.onrender.com/v1/api';
+    const BACKEND_API_URL = 'https://web-production-9f730.up.railway.app/v1/api';
 
     const orderData = {
         orderId: searchParams.get('orderId'),

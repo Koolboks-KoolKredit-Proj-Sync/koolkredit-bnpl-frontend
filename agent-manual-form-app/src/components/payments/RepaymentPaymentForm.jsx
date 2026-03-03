@@ -47,7 +47,7 @@ export default function RepaymentPaymentForm() {
             console.log('=== VALIDATING TOKEN ===');
             console.log('Token:', token);
 
-            const response = await fetch(`https://koolkredit-bnpl-backend-gqbj.onrender.com/v1/api/payment-tokens/validate/${token}`);
+            const response = await fetch(`https://web-production-9f730.up.railway.app/v1/api/payment-tokens/validate/${token}`);
             const data = await response.json();
 
             console.log('Validation response:', data);

@@ -3197,7 +3197,7 @@ export default function AgentFollowUpForm() {
     const [customerEmail, setCustomerEmail] = useState("");
     const [guarantorEmail, setGuarantorEmail] = useState("");
 
-    const BACKEND_API_URL = 'https://koolkredit-bnpl-backend-gqbj.onrender.com';
+    const BACKEND_API_URL = 'https://web-production-9f730.up.railway.app';
 
     const handleUtilityUpload = (e) => {
         const file = e.target.files[0];
@@ -3312,7 +3312,7 @@ export default function AgentFollowUpForm() {
 
             // Submit the agent follow-up form
             const response = await fetch(
-                "http://localhost:8080/api/agent-followup",
+                "https://web-production-9f730.up.railway.app/api/agent-followup",
                 { method: "POST", body: formData }
             );
 

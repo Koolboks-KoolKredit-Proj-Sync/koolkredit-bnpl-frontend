@@ -72,7 +72,7 @@ export default function GuarantorOtpPage() {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`https://koolkredit-bnpl-backend-gqbj.onrender.com/api/guarantor/verify-otp/${token}`, {
+      const response = await fetch(`https://web-production-9f730.up.railway.app/api/guarantor/verify-otp/${token}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ otp: otpCode }),

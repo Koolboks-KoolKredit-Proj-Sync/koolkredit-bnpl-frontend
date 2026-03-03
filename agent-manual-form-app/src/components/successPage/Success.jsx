@@ -148,7 +148,7 @@ export default function BnplApproved() {
       return;
     }
   
-    fetch(`https://koolkredit-bnpl-backend-gqbj.onrender.com/api/application/success/${ref}`)
+    fetch(`https://web-production-9f730.up.railway.app/api/application/success/${ref}`)
       .then(res => {
         if (!res.ok) throw new Error("Server response was not ok");
         return res.json();

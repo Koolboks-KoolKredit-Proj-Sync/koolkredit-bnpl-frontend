@@ -3916,7 +3916,7 @@ function AgentEntryForm() {
     setPassportPreview(null);
   };
 
-  const planOptions = ['OutrightFlex', 'Easy 35', 'Easy 20', 'Omolope'];
+  const planOptions = ['OutrightFlex', 'Easy 35', 'Easy 25', 'Omolope'];
   const installmentMonths = [1, 2, 5, 11, 17, 23];
   const maritalStatusOptions = ['Single', 'Married', 'Divorced', 'Widowed'];
   const genderOptions = ['Male', 'Female', 'Other'];
@@ -4523,7 +4523,7 @@ function AgentEntryForm() {
             </div>
 
             {/* Installment Duration Section */}
-            {(formData.plan === 'Easy 35' || formData.plan === 'Easy 20') && (
+            {(formData.plan === 'Easy 35' || formData.plan === 'Easy 25') && (
                 <div className="border-b pb-4 sm:pb-6" style={{ borderColor: '#f7623b' }}>
                   <h2 className="text-xl sm:text-2xl font-semibold mb-3 sm:mb-4 text-white">
                     Installment Duration *

@@ -735,7 +735,8 @@ function HomePage() {
     const [showBankDropdown, setShowBankDropdown] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
 
-    const MONO_API_KEY = import.meta.env.VITE_MONO_API_KEY;
+    // const MONO_API_KEY = import.meta.env.VITE_MONO_API_KEY;
+    const MONO_API_KEY = live_sk_dtn8zgs0joctmpxcswfb;
 
 
     const BACKEND_API_URL = 'https://web-production-9f730.up.railway.app/api/debit-mandate'; // Update with your backend URL

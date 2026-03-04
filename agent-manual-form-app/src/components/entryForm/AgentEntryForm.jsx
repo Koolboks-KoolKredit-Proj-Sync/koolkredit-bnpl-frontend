@@ -3756,7 +3756,7 @@ function AgentEntryForm() {
     }
 
     if (
-        (formData.plan === 'Easy 35' || formData.plan === 'Easy 20') &&
+        (formData.plan === 'Easy 35' || formData.plan === 'Easy 25') &&
         !formData.installmentDuration
     ) {
       Swal.fire({

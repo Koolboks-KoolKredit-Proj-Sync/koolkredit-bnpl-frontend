@@ -139,7 +139,8 @@ export default function BNPLPaymentForm() {
             return;
         }
 
-        const PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
+        //const PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
+        const PUBLIC_KEY = 'pk_test_6ed8e074eccbd6d8798bf9e674928cf38b62a66c';
 
 
         const handler = window.PaystackPop.setup({

@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { CreditCard, DollarSign, Lock, User, Phone, Mail } from 'lucide-react';
+import { CreditCard, DollarSign, Lock, User, Phone, Mail, Loader2 } from 'lucide-react';
 
 export default function BNPLPaymentForm() {
     const [isLoading, setIsLoading] = useState(false);
     const [paystackPublicKey, setPaystackPublicKey] = useState('');
-
 
     const [formData, setFormData] = useState({
         customer_name: '',
@@ -15,18 +14,21 @@ export default function BNPLPaymentForm() {
         loan_ref: '',
         agent_id: '',
         subsequent_payment: '',
-        product_brand: ''   // 👈 NEW
+        product_brand: ''
     });
 
-
+    // Fetch config keys from backend on mount
     useEffect(() => {
         fetch('https://web-production-9f730.up.railway.app/api/config/keys')
             .then(res => res.json())
-            .then(data => setPaystackPublicKey(data.paystackPublicKey))
-            .catch(err => console.error('Failed to load config:', err));
+            .then(data => {
+                setPaystackPublicKey(data.paystackPublicKey);
+                console.log('✅ Config loaded successfully');
+            })
+            .catch(err => console.error('❌ Failed to load config:', err));
     }, []);
 
-    // Extract amount and ref from URL params on component mount
+    // Extract amount and ref from URL params on mount
     useEffect(() => {
         const urlParams = new URLSearchParams(window.location.search);
         const amount = urlParams.get('amount') || '';
@@ -39,27 +41,25 @@ export default function BNPLPaymentForm() {
         }));
     }, []);
 
+    // Load Paystack script
+    useEffect(() => {
+        const script = document.createElement('script');
+        script.src = 'https://js.paystack.co/v1/inline.js';
+        script.async = true;
+        document.body.appendChild(script);
+
+        return () => {
+            document.body.removeChild(script);
+        };
+    }, []);
+
     const handleChange = (e) => {
         const { name, value } = e.target;
 
-        // Only allow digits for mobile number
-        if (name === 'mobile_number' && !/^\d*$/.test(value)) {
-            return;
-        }
-
-        // Limit mobile number to 11 digits
-        if (name === 'mobile_number' && value.length > 11) {
-            return;
-        }
-
-        if (name === 'agent_id' && value.length > 11) {
-            return;
-        }
-
-        // Only allow digits for subsequent_payment
-        if (name === 'subsequent_payment' && value && !/^\d*$/.test(value)) {
-            return;
-        }
+        if (name === 'mobile_number' && !/^\d*$/.test(value)) return;
+        if (name === 'mobile_number' && value.length > 11) return;
+        if (name === 'agent_id' && value.length > 11) return;
+        if (name === 'subsequent_payment' && value && !/^\d*$/.test(value)) return;
 
         setFormData(prev => ({
             ...prev,
@@ -83,11 +83,6 @@ export default function BNPLPaymentForm() {
             return false;
         }
 
-        // if (formData.agent_id.length !== 0 || formData.agent_id.length === 11 ) {
-        //     alert('Enter a valid agent ID');
-        //     return false;
-        // }
-
         if (!formData.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
             alert('Please enter a valid email address');
             return false;
@@ -98,7 +93,6 @@ export default function BNPLPaymentForm() {
             return false;
         }
 
-
         return true;
     };
 
@@ -108,7 +102,6 @@ export default function BNPLPaymentForm() {
         setIsLoading(true);
 
         try {
-            // Submit to Django backend
             const response = await fetch('https://koolkredit-payment-integration-production.up.railway.app/v1/api/bnpl-payment/', {
                 method: 'POST',
                 headers: {
@@ -120,9 +113,9 @@ export default function BNPLPaymentForm() {
                     mobile_number: formData.mobile_number,
                     email: formData.email,
                     amount: parseInt(formData.amount),
-                    agent_id:formData.agent_id,
+                    agent_id: formData.agent_id,
                     loan_ref: formData.loan_ref,
-                    product_brand: formData.product_brand, // 👈 NEW
+                    product_brand: formData.product_brand,
                     subsequent_payment: formData.subsequent_payment ? parseInt(formData.subsequent_payment) : null
                 }),
             });
@@ -130,7 +123,6 @@ export default function BNPLPaymentForm() {
             const data = await response.json();
 
             if (response.ok && data.ref) {
-                // Initialize Paystack payment
                 initializePaystack(data);
             } else {
                 throw new Error(data.message || 'Failed to create payment');
@@ -143,32 +135,25 @@ export default function BNPLPaymentForm() {
     };
 
     const initializePaystack = (paymentData) => {
-        // Check if Paystack script is loaded
         if (typeof window.PaystackPop === 'undefined') {
             alert('Payment gateway is loading. Please try again in a moment.');
             setIsLoading(false);
             return;
         }
 
-        //const PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
-        //const PUBLIC_KEY = 'pk_test_6ed8e074eccbd6d8798bf9e674928cf38b62a66c';
-
-        const PUBLIC_KEY = paystackPublicKey;
-        if (!PUBLIC_KEY) {
+        if (!paystackPublicKey) {
             alert('Payment configuration not loaded. Please refresh and try again.');
             setIsLoading(false);
             return;
         }
 
-
         const handler = window.PaystackPop.setup({
-            key: PUBLIC_KEY, // Replace with your actual key
+            key: paystackPublicKey,
             email: paymentData.email,
-            amount: paymentData.amount_value, // Amount in kobo (smallest currency unit)
+            amount: paymentData.amount_value,
             ref: paymentData.ref,
             currency: 'NGN',
             callback: function(response) {
-                // Payment successful - redirect to verification
                 window.location.href = `https://koolkredit-payment-integration-production.up.railway.app/v1/verify-payment/${paymentData.ref}/`;
             },
             onClose: function() {
@@ -179,18 +164,6 @@ export default function BNPLPaymentForm() {
 
         handler.openIframe();
     };
-
-    // Load Paystack script
-    useEffect(() => {
-        const script = document.createElement('script');
-        script.src = 'https://js.paystack.co/v1/inline.js';
-        script.async = true;
-        document.body.appendChild(script);
-
-        return () => {
-            document.body.removeChild(script);
-        };
-    }, []);
 
     return (
         <div className="min-h-screen flex items-center justify-center p-4 sm:p-6 lg:p-8" style={{ backgroundColor: '#f7623b' }}>
@@ -313,6 +286,7 @@ export default function BNPLPaymentForm() {
                         />
                     </div>
 
+                    {/* Agent ID */}
                     <div>
                         <label className="flex items-center text-sm font-medium mb-2 text-[#f7623b]">
                             <CreditCard className="w-4 h-4 mr-2" />
@@ -348,10 +322,7 @@ export default function BNPLPaymentForm() {
                         <label className="text-sm font-medium mb-3 block text-[#f7623b]">
                             Product Brand *
                         </label>
-
                         <div className="space-y-4">
-
-                            {/* Koolbuy */}
                             <label className="flex items-start gap-3 cursor-pointer">
                                 <input
                                     type="radio"
@@ -369,7 +340,6 @@ export default function BNPLPaymentForm() {
                                 </div>
                             </label>
 
-                            {/* Koolboks / Koolenergies */}
                             <label className="flex items-start gap-3 cursor-pointer">
                                 <input
                                     type="radio"
@@ -386,10 +356,8 @@ export default function BNPLPaymentForm() {
                                     </p>
                                 </div>
                             </label>
-
                         </div>
                     </div>
-
 
                     {/* Subsequent Payment (Optional) */}
                     <div>
@@ -410,7 +378,7 @@ export default function BNPLPaymentForm() {
                     {/* Submit Button */}
                     <button
                         onClick={handleSubmit}
-                        disabled={isLoading}
+                        disabled={isLoading || !paystackPublicKey}
                         className="w-full font-bold py-4 text-base rounded-lg text-white transition shadow-lg disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90 flex items-center justify-center gap-2"
                         style={{ backgroundColor: '#f7623b' }}
                     >
@@ -418,6 +386,11 @@ export default function BNPLPaymentForm() {
                             <>
                                 <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
                                 Processing...
+                            </>
+                        ) : !paystackPublicKey ? (
+                            <>
+                                <Loader2 className="animate-spin w-5 h-5" />
+                                Loading...
                             </>
                         ) : (
                             <>

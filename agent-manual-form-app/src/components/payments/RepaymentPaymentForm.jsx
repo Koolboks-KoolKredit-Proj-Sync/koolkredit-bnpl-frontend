@@ -646,7 +646,7 @@ export default function RepaymentPaymentForm() {
                 <div className="bg-gray-900 rounded-lg p-6 mb-6 border-2 border-[#f7623b]">
                     <div className="text-center">
                         <p className="text-gray-400 text-sm mb-2">Amount Due</p>
- npm                       <div className="flex items-center justify-center gap-2">
+                        <div className="flex items-center justify-center gap-2">
                             <DollarSign className="w-6 h-6 text-[#f7623b]" />
                             <h2 className="text-3xl font-bold text-white">
                                 ₦{Number(formData.amount).toLocaleString()}

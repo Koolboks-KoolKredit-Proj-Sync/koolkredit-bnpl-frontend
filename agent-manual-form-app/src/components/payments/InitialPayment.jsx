@@ -3,6 +3,9 @@ import { CreditCard, DollarSign, Lock, User, Phone, Mail } from 'lucide-react';
 
 export default function BNPLPaymentForm() {
     const [isLoading, setIsLoading] = useState(false);
+    const [paystackPublicKey, setPaystackPublicKey] = useState('');
+
+
     const [formData, setFormData] = useState({
         customer_name: '',
         payment_description: '',
@@ -14,6 +17,14 @@ export default function BNPLPaymentForm() {
         subsequent_payment: '',
         product_brand: ''   // 👈 NEW
     });
+
+
+    useEffect(() => {
+        fetch('https://web-production-9f730.up.railway.app/api/config/keys')
+            .then(res => res.json())
+            .then(data => setPaystackPublicKey(data.paystackPublicKey))
+            .catch(err => console.error('Failed to load config:', err));
+    }, []);
 
     // Extract amount and ref from URL params on component mount
     useEffect(() => {
@@ -140,7 +151,14 @@ export default function BNPLPaymentForm() {
         }
 
         //const PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
-        const PUBLIC_KEY = 'pk_test_6ed8e074eccbd6d8798bf9e674928cf38b62a66c';
+        //const PUBLIC_KEY = 'pk_test_6ed8e074eccbd6d8798bf9e674928cf38b62a66c';
+
+        const PUBLIC_KEY = paystackPublicKey;
+        if (!PUBLIC_KEY) {
+            alert('Payment configuration not loaded. Please refresh and try again.');
+            setIsLoading(false);
+            return;
+        }
 
 
         const handler = window.PaystackPop.setup({

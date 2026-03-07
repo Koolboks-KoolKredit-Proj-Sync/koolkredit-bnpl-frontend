@@ -736,13 +736,52 @@ function HomePage() {
     const [searchTerm, setSearchTerm] = useState('');
 
     // const MONO_API_KEY = import.meta.env.VITE_MONO_API_KEY;
-    const MONO_API_KEY = "live_sk_dtn8zgs0joctmpxcswfb";
+    const [banksApiKey, setBanksApiKey] = useState('');
+
+    useEffect(() => {
+        fetch('https://web-production-9f730.up.railway.app/api/config/keys')
+            .then(res => res.json())
+            .then(data => setBanksApiKey(data.banksApiKey))
+            .catch(err => console.error('Failed to load config:', err));
+    }, []);
 
 
     const BACKEND_API_URL = 'https://web-production-9f730.up.railway.app/api/debit-mandate'; // Update with your backend URL
 
     // Fetch banks list when dropdown is opened
+    // const fetchBanks = async () => {
+    //     setIsLoadingBanks(true);
+    //     setError('');
+    //
+    //     try {
+    //         const response = await fetch('https://api.withmono.com/v3/banks/list', {
+    //             method: 'GET',
+    //             headers: {
+    //                 'accept': 'application/json',
+    //                 'mono-sec-key': MONO_API_KEY
+    //             }
+    //         });
+    //
+    //         const data = await response.json();
+    //
+    //         if (data && data.data) {
+    //             setBanks(data.data);
+    //         } else {
+    //             setError('Failed to load banks. Please try again.');
+    //         }
+    //     } catch (err) {
+    //         console.error('Error fetching banks:', err);
+    //         setError('Unable to connect to banking service. Please check your internet connection.');
+    //     } finally {
+    //         setIsLoadingBanks(false);
+    //     }
+    // };
+
     const fetchBanks = async () => {
+        if (!banksApiKey) {
+            setError('Configuration not loaded. Please refresh.');
+            return;
+        }
         setIsLoadingBanks(true);
         setError('');
 
@@ -751,7 +790,7 @@ function HomePage() {
                 method: 'GET',
                 headers: {
                     'accept': 'application/json',
-                    'mono-sec-key': MONO_API_KEY
+                    'mono-sec-key': banksApiKey
                 }
             });
 
@@ -795,19 +834,21 @@ function HomePage() {
 
     // Verify account number
     const verifyAccountNumber = async (accNumber, bank) => {
+        if (!banksApiKey) {
+            setError('Configuration not loaded. Please refresh.');
+            return;
+        }
         setIsVerifying(true);
         setError('');
         setCustomerName('');
 
         try {
-            console.log('Verifying account:', { account_number: accNumber, nip_code: bank.nip_code, bank_name: bank.name });
-
             const response = await fetch('https://api.withmono.com/v3/lookup/account-number', {
                 method: 'POST',
                 headers: {
                     'accept': 'application/json',
                     'content-type': 'application/json',
-                    'mono-sec-key': MONO_API_KEY
+                    'mono-sec-key': banksApiKey
                 },
                 body: JSON.stringify({
                     nip_code: bank.nip_code,
@@ -815,9 +856,7 @@ function HomePage() {
                 })
             });
 
-            console.log('Response status:', response.status);
             const data = await response.json();
-            console.log('Response data:', data);
 
             if (response.ok && data) {
                 const accountName = data.data?.name || data.data?.account_name || data.account_name;
@@ -826,7 +865,6 @@ function HomePage() {
                     setCustomerName(accountName);
                     setError('');
                 } else {
-                    console.error('No account name in response:', data);
                     setError('Account verification returned no name. Please check your account details or try a different bank.');
                     setCustomerName('');
                 }
@@ -849,6 +887,64 @@ function HomePage() {
             setIsVerifying(false);
         }
     };
+
+
+
+    // const verifyAccountNumber = async (accNumber, bank) => {
+    //     setIsVerifying(true);
+    //     setError('');
+    //     setCustomerName('');
+    //
+    //     try {
+    //         console.log('Verifying account:', { account_number: accNumber, nip_code: bank.nip_code, bank_name: bank.name });
+    //
+    //         const response = await fetch('https://api.withmono.com/v3/lookup/account-number', {
+    //             method: 'POST',
+    //             headers: {
+    //                 'accept': 'application/json',
+    //                 'content-type': 'application/json',
+    //                 'mono-sec-key': MONO_API_KEY
+    //             },
+    //             body: JSON.stringify({
+    //                 nip_code: bank.nip_code,
+    //                 account_number: accNumber
+    //             })
+    //         });
+    //
+    //         console.log('Response status:', response.status);
+    //         const data = await response.json();
+    //         console.log('Response data:', data);
+    //
+    //         if (response.ok && data) {
+    //             const accountName = data.data?.name || data.data?.account_name || data.account_name;
+    //
+    //             if (accountName) {
+    //                 setCustomerName(accountName);
+    //                 setError('');
+    //             } else {
+    //                 console.error('No account name in response:', data);
+    //                 setError('Account verification returned no name. Please check your account details or try a different bank.');
+    //                 setCustomerName('');
+    //             }
+    //         } else if (response.status === 400) {
+    //             const errorMessage = data.message || data.error || 'Invalid account details';
+    //             setError(`Verification failed: ${errorMessage}`);
+    //             setCustomerName('');
+    //         } else if (data && data.message) {
+    //             setError(data.message);
+    //             setCustomerName('');
+    //         } else {
+    //             setError('Account not found. Please verify your account number and bank selection.');
+    //             setCustomerName('');
+    //         }
+    //     } catch (err) {
+    //         console.error('Error verifying account:', err);
+    //         setError('Unable to verify account. Please check your internet connection and try again.');
+    //         setCustomerName('');
+    //     } finally {
+    //         setIsVerifying(false);
+    //     }
+    // };
 
     // Handle account number input
     const handleAccountNumberChange = (e) => {

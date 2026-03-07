@@ -404,7 +404,7 @@
 
 
 import React, { useState, useEffect, useRef } from "react";
-import { Shield, User, Package, CreditCard, Phone, Mail, AlertCircle, Camera, CheckCircle, Loader2 } from "lucide-react";
+import { Shield, User, Package, CreditCard, Mail, AlertCircle, Camera, CheckCircle, Loader2 } from "lucide-react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
@@ -413,29 +413,22 @@ import Swal from "sweetalert2";
 
 const Stage1SVG = () => (
     <svg viewBox="0 0 200 200" className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-        {/* Head */}
         <ellipse cx="100" cy="90" rx="45" ry="52" fill="#f7c59f" stroke="#f7623b" strokeWidth="2.5"/>
-        {/* Hair */}
         <ellipse cx="100" cy="45" rx="45" ry="18" fill="#3b2a1a"/>
-        {/* Left Eye - blinking */}
         <g>
             <ellipse cx="82" cy="82" rx="9" ry="9" fill="white"/>
             <circle cx="82" cy="84" r="5" fill="#3b2a1a"/>
             <circle cx="84" cy="82" r="2" fill="white"/>
             <animateTransform attributeName="transform" type="scale" values="1 1;1 0.1;1 1" dur="2s" repeatCount="indefinite" additive="sum" origin="82 82"/>
         </g>
-        {/* Right Eye - blinking */}
         <g>
             <ellipse cx="118" cy="82" rx="9" ry="9" fill="white"/>
             <circle cx="118" cy="84" r="5" fill="#3b2a1a"/>
             <circle cx="120" cy="82" r="2" fill="white"/>
             <animateTransform attributeName="transform" type="scale" values="1 1;1 0.1;1 1" dur="2s" repeatCount="indefinite" additive="sum" origin="118 82"/>
         </g>
-        {/* Nose */}
         <ellipse cx="100" cy="100" rx="5" ry="7" fill="#e8a87c"/>
-        {/* Smile */}
         <path d="M 85 115 Q 100 128 115 115" fill="none" stroke="#c0392b" strokeWidth="2.5" strokeLinecap="round"/>
-        {/* Rotation arrows */}
         <path d="M 50 90 Q 40 60 70 45" fill="none" stroke="#f7623b" strokeWidth="3" strokeLinecap="round" markerEnd="url(#arrow)"/>
         <path d="M 150 90 Q 160 60 130 45" fill="none" stroke="#f7623b" strokeWidth="3" strokeLinecap="round" markerEnd="url(#arrow2)"/>
         <defs>
@@ -446,31 +439,22 @@ const Stage1SVG = () => (
                 <path d="M8,0 L8,6 L0,3 z" fill="#f7623b"/>
             </marker>
         </defs>
-        {/* Blink x2 label */}
-        <text x="100" y="175" textAnchor="middle" fill="#f7623b" fontSize="13" fontWeight="bold">Blink x2 + Rotate Head</text>
-        {/* Animated rotation indicator */}
+        <text x="100" y="175" textAnchor="middle" fill="#f7623b" fontSize="13" fontWeight="bold">Blink Once + Slight Head Turn</text>
         <animateTransform attributeName="transform" type="rotate" values="0 100 90;-8 100 90;8 100 90;0 100 90" dur="3s" repeatCount="indefinite"/>
     </svg>
 );
 
 const Stage2SVG = () => (
     <svg viewBox="0 0 200 200" className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-        {/* Face turned sideways - profile view */}
         <ellipse cx="105" cy="90" rx="35" ry="50" fill="#f7c59f" stroke="#f7623b" strokeWidth="2.5"/>
-        {/* Hair */}
         <ellipse cx="100" cy="47" rx="40" ry="17" fill="#3b2a1a"/>
-        {/* Ear */}
         <ellipse cx="70" cy="92" rx="10" ry="13" fill="#f7c59f" stroke="#f7623b" strokeWidth="1.5"/>
         <ellipse cx="72" cy="92" rx="6" ry="9" fill="#e8a87c"/>
-        {/* Eye (side profile - only one visible) */}
         <ellipse cx="98" cy="82" rx="7" ry="7" fill="white" stroke="#ccc" strokeWidth="1"/>
         <circle cx="100" cy="84" r="4" fill="#3b2a1a"/>
         <circle cx="101" cy="82" r="1.5" fill="white"/>
-        {/* Nose (side profile) */}
         <path d="M 112 98 Q 118 105 112 112" fill="#e8a87c" stroke="#c8956c" strokeWidth="1"/>
-        {/* Lips */}
         <path d="M 108 118 Q 116 122 108 126" fill="#e07070" stroke="none"/>
-        {/* Arrow pointing sideways */}
         <path d="M 30 90 L 55 90" fill="none" stroke="#f7623b" strokeWidth="3" strokeLinecap="round" markerEnd="url(#arrowRight)"/>
         <defs>
             <marker id="arrowRight" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
@@ -478,38 +462,29 @@ const Stage2SVG = () => (
             </marker>
         </defs>
         <text x="100" y="172" textAnchor="middle" fill="#f7623b" fontSize="13" fontWeight="bold">Turn Face Sideways</text>
-        {/* Animated nudge */}
         <animateTransform attributeName="transform" type="translate" values="0 0;8 0;0 0" dur="2s" repeatCount="indefinite"/>
     </svg>
 );
 
 const Stage3SVG = () => (
     <svg viewBox="0 0 200 200" className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-        {/* Head */}
         <ellipse cx="100" cy="72" rx="38" ry="44" fill="#f7c59f" stroke="#f7623b" strokeWidth="2.5"/>
-        {/* Hair */}
         <ellipse cx="100" cy="35" rx="38" ry="15" fill="#3b2a1a"/>
-        {/* Eyes */}
         <ellipse cx="85" cy="65" rx="7" ry="7" fill="white"/>
         <circle cx="85" cy="67" r="4" fill="#3b2a1a"/>
         <circle cx="87" cy="65" r="1.5" fill="white"/>
         <ellipse cx="115" cy="65" rx="7" ry="7" fill="white"/>
         <circle cx="115" cy="67" r="4" fill="#3b2a1a"/>
         <circle cx="117" cy="65" r="1.5" fill="white"/>
-        {/* Nose */}
         <ellipse cx="100" cy="80" rx="4" ry="5" fill="#e8a87c"/>
-        {/* Smile */}
         <path d="M 88 92 Q 100 102 112 92" fill="none" stroke="#c0392b" strokeWidth="2" strokeLinecap="round"/>
-        {/* Arms/Hands holding ID */}
         <path d="M 60 130 Q 55 145 65 152" fill="none" stroke="#f7c59f" strokeWidth="8" strokeLinecap="round"/>
         <path d="M 140 130 Q 145 145 135 152" fill="none" stroke="#f7c59f" strokeWidth="8" strokeLinecap="round"/>
-        {/* ID Card */}
         <rect x="55" y="148" width="90" height="42" rx="5" fill="#1a1a2e" stroke="#f7623b" strokeWidth="2"/>
         <rect x="60" y="153" width="20" height="20" rx="3" fill="#f7623b" opacity="0.7"/>
         <line x1="85" y1="158" x2="138" y2="158" stroke="#666" strokeWidth="2"/>
         <line x1="85" y1="164" x2="130" y2="164" stroke="#666" strokeWidth="2"/>
         <line x1="85" y1="170" x2="120" y2="170" stroke="#666" strokeWidth="2"/>
-        {/* ID label */}
         <text x="100" y="197" textAnchor="middle" fill="#f7623b" fontSize="11" fontWeight="bold">Hold ID & Take Selfie</text>
     </svg>
 );
@@ -530,15 +505,16 @@ const LivenessCamera = ({ stage, onStageComplete }) => {
     const [progressPct, setProgressPct] = useState(0);
     const [capturedImage, setCapturedImage] = useState(null);
 
-    const prevEarRef = useRef(null);
     const blinkStateRef = useRef("open");
     const blinkCountRef = useRef(0);
     const rotatedRef = useRef(false);
+    const progressPctRef = useRef(0);
 
     // Load face-api.js
     useEffect(() => {
         const loadFaceApi = async () => {
             if (window.faceapi) {
+                faceApiRef.current = window.faceapi;
                 setFaceApiLoaded(true);
                 return;
             }
@@ -564,7 +540,6 @@ const LivenessCamera = ({ stage, onStageComplete }) => {
                 setLoadingMessage("Starting camera...");
             } catch (err) {
                 console.error("Failed to load face-api:", err);
-                // Fallback to timer-based if face-api fails
                 setFaceApiLoaded("fallback");
             }
         };
@@ -580,32 +555,23 @@ const LivenessCamera = ({ stage, onStageComplete }) => {
                 if (streamRef.current) {
                     streamRef.current.getTracks().forEach(t => t.stop());
                 }
-
                 const stream = await navigator.mediaDevices.getUserMedia({
                     video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } }
                 });
 
                 if (!mounted) return;
-
                 streamRef.current = stream;
 
                 if (videoRef.current) {
                     videoRef.current.srcObject = stream;
-
-                    // Use onloadedmetadata instead of awaiting play()
                     videoRef.current.onloadedmetadata = () => {
                         if (!mounted) return;
                         videoRef.current.play().then(() => {
                             if (!mounted) return;
                             setCameraReady(true);
                             setLoadingMessage("");
-                        }).catch(err => {
-                            console.error("Play error:", err);
-                            // Still clear loading even if play() throws
-                            if (mounted) {
-                                setCameraReady(true);
-                                setLoadingMessage("");
-                            }
+                        }).catch(() => {
+                            if (mounted) { setCameraReady(true); setLoadingMessage(""); }
                         });
                     };
                 }
@@ -624,45 +590,14 @@ const LivenessCamera = ({ stage, onStageComplete }) => {
         };
     }, [stage]);
 
-
-
-    // useEffect(() => {
-    //     const startCamera = async () => {
-    //         try {
-    //             if (streamRef.current) {
-    //                 streamRef.current.getTracks().forEach(t => t.stop());
-    //             }
-    //             const stream = await navigator.mediaDevices.getUserMedia({
-    //                 video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } }
-    //             });
-    //             streamRef.current = stream;
-    //             if (videoRef.current) {
-    //                 videoRef.current.srcObject = stream;
-    //                 await videoRef.current.play();
-    //                 setCameraReady(true);
-    //                 setLoadingMessage("");
-    //             }
-    //         } catch (err) {
-    //             console.error("Camera error:", err);
-    //             setLoadingMessage("Camera access denied. Please allow camera.");
-    //         }
-    //     };
-    //     startCamera();
-    //
-    //     return () => {
-    //         if (streamRef.current) streamRef.current.getTracks().forEach(t => t.stop());
-    //         if (detectionIntervalRef.current) clearInterval(detectionIntervalRef.current);
-    //     };
-    // }, [stage]);
-
     // Run detection for stages 1 and 2
     useEffect(() => {
         if (!cameraReady || stage === 3) return;
 
+        // Timer-based fallback
         if (faceApiLoaded === "fallback") {
-            // Timer-based fallback
             let count = 0;
-            const total = stage === 1 ? 5 : 4;
+            const total = stage === 1 ? 3 : 3;
             detectionIntervalRef.current = setInterval(() => {
                 count++;
                 setProgressPct(Math.min((count / total) * 100, 100));
@@ -697,7 +632,7 @@ const LivenessCamera = ({ stage, onStageComplete }) => {
                     const h1 = Math.abs(eye[1].y - eye[5].y);
                     const h2 = Math.abs(eye[2].y - eye[4].y);
                     const w = Math.abs(eye[0].x - eye[3].x);
-                    return (h1 + h2) / (2 * w);
+                    return w > 0 ? (h1 + h2) / (2 * w) : 0;
                 };
 
                 const leftEAR = eyeAR(leftEye);
@@ -707,49 +642,54 @@ const LivenessCamera = ({ stage, onStageComplete }) => {
                 // Head rotation via eye-nose geometry
                 const nose = landmarks.getNose();
                 const noseTip = nose[3];
-                const eyeCenter = { x: (leftEye[0].x + rightEye[3].x) / 2, y: (leftEye[0].y + rightEye[3].y) / 2 };
+                const eyeCenter = {
+                    x: (leftEye[0].x + rightEye[3].x) / 2,
+                    y: (leftEye[0].y + rightEye[3].y) / 2
+                };
                 const eyeWidth = Math.abs(rightEye[3].x - leftEye[0].x);
-                const noseOffset = (noseTip.x - eyeCenter.x) / eyeWidth;
+                const noseOffset = eyeWidth > 0 ? (noseTip.x - eyeCenter.x) / eyeWidth : 0;
 
                 if (stage === 1) {
-                    // Blink detection
-                    if (avgEAR < 0.2 && blinkStateRef.current === "open") {
+                    // ✅ EASIER blink detection thresholds
+                    if (avgEAR < 0.28 && blinkStateRef.current === "open") {
                         blinkStateRef.current = "closed";
-                    } else if (avgEAR > 0.25 && blinkStateRef.current === "closed") {
+                    } else if (avgEAR > 0.23 && blinkStateRef.current === "closed") {
                         blinkStateRef.current = "open";
                         blinkCountRef.current += 1;
                         setProgress(p => ({ ...p, blinkCount: blinkCountRef.current }));
                     }
 
-                    // Head rotation detection
-                    if (Math.abs(noseOffset) > 0.25 && !rotatedRef.current) {
+                    // ✅ EASIER head rotation - tiny movement counts
+                    if (Math.abs(noseOffset) > 0.12 && !rotatedRef.current) {
                         rotatedRef.current = true;
                         setProgress(p => ({ ...p, rotated: true }));
                     }
 
+                    // ✅ Only need 1 blink
                     const pct = Math.min(
-                        ((blinkCountRef.current >= 2 ? 50 : blinkCountRef.current * 25) +
+                        ((blinkCountRef.current >= 1 ? 50 : 0) +
                             (rotatedRef.current ? 50 : 0)),
                         100
                     );
                     setProgressPct(pct);
 
-                    if (blinkCountRef.current >= 2 && rotatedRef.current) {
+                    if (blinkCountRef.current >= 1 && rotatedRef.current) {
                         clearInterval(detectionIntervalRef.current);
                         setTimeout(() => onStageComplete(), 800);
                     }
                 }
 
                 if (stage === 2) {
-                    // Side profile: nose offset > 0.35 means turned sideways
-                    if (Math.abs(noseOffset) > 0.35) {
+                    // ✅ EASIER side profile threshold
+                    if (Math.abs(noseOffset) > 0.18) {
                         setProgress(p => ({ ...p, sideways: true }));
-                        setProgressPct(prev => Math.min(prev + 8, 100));
-                    }
+                        progressPctRef.current = Math.min(progressPctRef.current + 15, 100);
+                        setProgressPct(progressPctRef.current);
 
-                    if (progressPct >= 100) {
-                        clearInterval(detectionIntervalRef.current);
-                        setTimeout(() => onStageComplete(), 800);
+                        if (progressPctRef.current >= 100) {
+                            clearInterval(detectionIntervalRef.current);
+                            setTimeout(() => onStageComplete(), 800);
+                        }
                     }
                 }
             } catch (err) {
@@ -784,13 +724,19 @@ const LivenessCamera = ({ stage, onStageComplete }) => {
     const retake = () => {
         setCapturedImage(null);
         const startCamera = async () => {
-            const stream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } }
-            });
-            streamRef.current = stream;
-            if (videoRef.current) {
-                videoRef.current.srcObject = stream;
-                await videoRef.current.play();
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } }
+                });
+                streamRef.current = stream;
+                if (videoRef.current) {
+                    videoRef.current.srcObject = stream;
+                    videoRef.current.onloadedmetadata = () => {
+                        videoRef.current.play().catch(console.error);
+                    };
+                }
+            } catch (err) {
+                console.error("Retake camera error:", err);
             }
         };
         startCamera();
@@ -841,17 +787,17 @@ const LivenessCamera = ({ stage, onStageComplete }) => {
                     <div className="flex justify-between text-xs text-gray-400">
                         {stage === 1 && (
                             <>
-                                <span className={progress.blinkCount >= 2 ? "text-green-400" : ""}>
-                                    {progress.blinkCount >= 2 ? "✅" : "👁️"} Blinks: {progress.blinkCount}/2
+                                <span className={progress.blinkCount >= 1 ? "text-green-400" : ""}>
+                                    {progress.blinkCount >= 1 ? "✅" : "👁️"} Blink once
                                 </span>
                                 <span className={progress.rotated ? "text-green-400" : ""}>
-                                    {progress.rotated ? "✅" : "🔄"} Head rotation
+                                    {progress.rotated ? "✅" : "🔄"} Slight head turn
                                 </span>
                             </>
                         )}
                         {stage === 2 && (
                             <span className={progress.sideways ? "text-green-400" : ""}>
-                                {progress.sideways ? "✅ Profile detected - hold still..." : "↔️ Turn your face sideways slowly"}
+                                {progress.sideways ? "✅ Profile detected — hold still..." : "↔️ Turn your face sideways slightly"}
                             </span>
                         )}
                     </div>
@@ -898,14 +844,14 @@ const SelfieLiveness = ({ onComplete }) => {
 
     const stages = [
         {
-            title: "Liveness Check — Blink & Rotate",
-            description: "Blink your eyes twice and slowly turn your head left and right.",
+            title: "Liveness Check — Blink & Slight Turn",
+            description: "Blink your eye once and slightly turn your head to either side.",
             svg: <Stage1SVG />,
             color: "from-orange-900 to-black",
         },
         {
             title: "Liveness Check — Side Profile",
-            description: "Turn your face fully to one side and hold for a moment.",
+            description: "Gently turn your face to one side — just a little is enough.",
             svg: <Stage2SVG />,
             color: "from-purple-900 to-black",
         },
@@ -922,7 +868,6 @@ const SelfieLiveness = ({ onComplete }) => {
         if (currentStage < 3) {
             setTimeout(() => setCurrentStage(prev => prev + 1), 400);
         } else {
-            // Stage 3 complete — pass blob up
             onComplete(blob);
         }
     };
@@ -958,12 +903,10 @@ const SelfieLiveness = ({ onComplete }) => {
                 <h3 className="text-[#f7623b] font-bold text-base mb-1">{stageInfo.title}</h3>
                 <p className="text-gray-300 text-sm mb-4">{stageInfo.description}</p>
 
-                {/* SVG illustration */}
                 <div className="w-36 h-36 mx-auto mb-4 bg-black bg-opacity-40 rounded-2xl p-2">
                     {stageInfo.svg}
                 </div>
 
-                {/* Camera component */}
                 <LivenessCamera
                     key={currentStage}
                     stage={currentStage}

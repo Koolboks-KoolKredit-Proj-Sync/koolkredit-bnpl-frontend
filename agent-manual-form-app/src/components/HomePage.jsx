@@ -23,7 +23,7 @@ function HomePage() {
         fetch('https://web-production-9f730.up.railway.app/api/config/keys')
             .then(res => res.json())
             .then(data => {
-                setBanksApiKey(data.banksApiKey);
+                setBanksApiKey(data.monoBankApiKey);
                 console.log('✅ Config loaded successfully');
             })
             .catch(err => {
@@ -266,7 +266,11 @@ function HomePage() {
                                 onBlur={(e) => e.target.style.borderColor = '#374151'}
                             >
                                 <span className={selectedBank ? 'text-white' : 'text-gray-400'}>
-                                    {selectedBank ? selectedBank.name : banksApiKey ? 'Choose a bank' : 'Loading configuration...'}
+                                    {selectedBank
+                                        ? selectedBank.name
+                                        : banksApiKey
+                                            ? 'Choose a bank'
+                                            : 'Loading configuration...'}
                                 </span>
                                 {isLoadingBanks ? (
                                     <Loader2 className="animate-spin" size={20} style={{ color: '#f7623b' }} />

@@ -573,33 +573,87 @@ const LivenessCamera = ({ stage, onStageComplete }) => {
 
     // Start camera
     useEffect(() => {
+        let mounted = true;
+
         const startCamera = async () => {
             try {
                 if (streamRef.current) {
                     streamRef.current.getTracks().forEach(t => t.stop());
                 }
+
                 const stream = await navigator.mediaDevices.getUserMedia({
                     video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } }
                 });
+
+                if (!mounted) return;
+
                 streamRef.current = stream;
+
                 if (videoRef.current) {
                     videoRef.current.srcObject = stream;
-                    await videoRef.current.play();
-                    setCameraReady(true);
-                    setLoadingMessage("");
+
+                    // Use onloadedmetadata instead of awaiting play()
+                    videoRef.current.onloadedmetadata = () => {
+                        if (!mounted) return;
+                        videoRef.current.play().then(() => {
+                            if (!mounted) return;
+                            setCameraReady(true);
+                            setLoadingMessage("");
+                        }).catch(err => {
+                            console.error("Play error:", err);
+                            // Still clear loading even if play() throws
+                            if (mounted) {
+                                setCameraReady(true);
+                                setLoadingMessage("");
+                            }
+                        });
+                    };
                 }
             } catch (err) {
                 console.error("Camera error:", err);
-                setLoadingMessage("Camera access denied. Please allow camera.");
+                if (mounted) setLoadingMessage("Camera access denied. Please allow camera.");
             }
         };
+
         startCamera();
 
         return () => {
+            mounted = false;
             if (streamRef.current) streamRef.current.getTracks().forEach(t => t.stop());
             if (detectionIntervalRef.current) clearInterval(detectionIntervalRef.current);
         };
     }, [stage]);
+
+
+
+    // useEffect(() => {
+    //     const startCamera = async () => {
+    //         try {
+    //             if (streamRef.current) {
+    //                 streamRef.current.getTracks().forEach(t => t.stop());
+    //             }
+    //             const stream = await navigator.mediaDevices.getUserMedia({
+    //                 video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } }
+    //             });
+    //             streamRef.current = stream;
+    //             if (videoRef.current) {
+    //                 videoRef.current.srcObject = stream;
+    //                 await videoRef.current.play();
+    //                 setCameraReady(true);
+    //                 setLoadingMessage("");
+    //             }
+    //         } catch (err) {
+    //             console.error("Camera error:", err);
+    //             setLoadingMessage("Camera access denied. Please allow camera.");
+    //         }
+    //     };
+    //     startCamera();
+    //
+    //     return () => {
+    //         if (streamRef.current) streamRef.current.getTracks().forEach(t => t.stop());
+    //         if (detectionIntervalRef.current) clearInterval(detectionIntervalRef.current);
+    //     };
+    // }, [stage]);
 
     // Run detection for stages 1 and 2
     useEffect(() => {

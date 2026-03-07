@@ -1886,7 +1886,7 @@ export default function GuarantorFormPage() {
             const response = await axios.post(
                 `https://web-production-9f730.up.railway.app/api/guarantor/submit/${token}`,
                 payload,
-                { headers: { "Content-Type": "multipart/form-data" } }
+                //{ headers: { "Content-Type": "multipart/form-data" } }
             );
 
             if (response.data.success) {

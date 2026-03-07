@@ -728,9 +728,9 @@ export default function AgentProofForm() {
                 alert('Proof submitted successfully to both systems! Email sent to After Sales Team.');
                 window.location.href = '/https://koolkredit-payment-integration-production.up.railway.app/admin/login/?next=/admin/';
             } else if (!djangoResponse.ok && springResponse.ok) {
-                throw new Error(`Django submission failed: ${djangoData.message || 'Unknown error'}`);
+                throw new Error(`D may be already submitted: ${djangoData.message || 'Unknown error'}`);
             } else if (djangoResponse.ok && !springResponse.ok) {
-                throw new Error(`Spring Boot submission failed: ${springData.message || 'Unknown error'}`);
+                throw new Error(`S submission failed: ${springData.message || 'Unknown error'}`);
             } else {
                 throw new Error('Both submissions failed. Please try again.');
             }

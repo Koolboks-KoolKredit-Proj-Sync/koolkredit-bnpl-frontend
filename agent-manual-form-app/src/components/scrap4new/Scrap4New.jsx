@@ -695,8 +695,8 @@ function Scrap4New() {
                             ].map(({ key, label }) => (
                                 <MediaField key={key} label={label} required accept="video/*"
                                             value={media[key]} onChange={v => setMed(key, v)}
-                                            allowPhoto={false}   {/* ← No snap photo for videos */}
-                                            allowVideo           {/* ← Record video button shown */}
+                                            allowPhoto={false}
+                                            allowVideo
                                 />
                             ))}
                         </div>

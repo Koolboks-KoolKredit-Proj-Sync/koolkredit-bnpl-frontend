@@ -19,72 +19,65 @@ import RepaymentPaymentForm from "./components/payments/RepaymentPaymentForm.jsx
 import HomePage from "./components/HomePage.jsx";
 import Logo from "./components/LogoWithVariant.jsx";
 import MandateVerificationForm from "./components/delivery/MandateVerificationForm.jsx";
+import Scrap4New from "./components/scrap4new/Scrap4New.jsx";
 
 function App(){
     return (
-        <>
-            {/* Fixed logo overlay - floats on top of all pages */}
-            {/*<div className="fixed top-4 left-4 z-50">*/}
-            {/*    <Logo size="large" />*/}
-            {/*</div>*/}
-
+        <BrowserRouter>
             <div className="hidden sm:block fixed sm:top-3 sm:left-3 z-50 pointer-events-none">
                 <Logo size="large" />
             </div>
 
+            <Routes>
+                {/* Home page - Account verification */}
+                <Route path="/" element={<HomePage />} />
 
-            <BrowserRouter>
-                <Routes>
-                    {/* Home page - Account verification */}
-                    <Route path="/" element={<HomePage />} />
+                {/* Agent entry form - Pre-filled with customer data */}
+                <Route path="/agent-entry" element={<AgentEntryForm />} />
 
+                <Route path="/agent-followup" element={<AgentFollowUpForm />} />
 
+                {/* Customer routes */}
+                <Route path="/customer-otp" element={<CustomerOtpVerification />} />
+                <Route path="/customer-waiting" element={<CustomerWaitingPage />} />
+                <Route path="/bnpl-approved" element={<BnplApproved />} />
 
-                    {/* Agent entry form - Pre-filled with customer data */}
-                    <Route path="/agent-entry" element={<AgentEntryForm />} />
+                {/* Guarantor routes (opened on guarantor's device) */}
+                <Route path="/guarantor/form/:token" element={<GuarantorFormPage />} />
+                <Route path="/guarantor/otp/:token" element={<GuarantorOtpPage />} />
 
-                    {/*<Route path="/" element={<AgentEntryForm />} />*/}
-                    <Route path="/agent-followup" element={<AgentFollowUpForm />} />
+                {/* Initial PAYMENT route */}
+                <Route path="/pay/pay" element={<BNPLPaymentForm />} />
 
-                    {/* Customer routes */}
-                    <Route path="/customer-otp" element={<CustomerOtpVerification />} />
-                    <Route path="/customer-waiting" element={<CustomerWaitingPage />} />
-                    <Route path="/bnpl-approved" element={<BnplApproved />} />
+                {/* Agent proof submission route */}
+                <Route path="/agent-proof/:paymentId" element={<AgentProofForm />} />
 
-                    {/* Guarantor routes (opened on guarantor's device) */}
-                    <Route path="/guarantor/form/:token" element={<GuarantorFormPage />} />
-                    <Route path="/guarantor/otp/:token" element={<GuarantorOtpPage />} />
+                {/* Read-only route */}
+                <Route path="/agent-proof-readonly/:paymentId" element={<AgentProofReadOnly />} />
 
-                    {/* initial PAYMENT route  */}
-                    <Route path="/pay/pay" element={<BNPLPaymentForm />} />
+                {/* After Sales Paygo Configuration route */}
+                <Route path="/after-sales" element={<AfterSales />} />
 
-                    {/* Agent proof submission route */}
-                    <Route path="/agent-proof/:paymentId" element={<AgentProofForm />} />
+                {/* Inventory Stock Confirmation route */}
+                <Route path="/inventory-confirmation" element={<InventoryConfirmation />} />
 
-                    {/* Read-only route */}
-                    <Route path="/agent-proof-readonly/:paymentId" element={<AgentProofReadOnly />} />
+                {/* Delivery Scheduling route */}
+                <Route path="/delivery-scheduling" element={<DeliveryScheduling />} />
 
-                    {/* After Sales Paygo Configuration route - ADD THIS */}
-                    <Route path="/after-sales" element={<AfterSales />} />
+                {/* Installation Confirmation route */}
+                <Route path="/installation-confirmation" element={<InstallationConfirmation />} />
 
-                    {/* Inventory Stock Confirmation route */}
-                    <Route path="/inventory-confirmation" element={<InventoryConfirmation />} />
+                <Route path="/repayment-payment" element={<RepaymentPaymentForm />} />
 
-                    {/* Delivery Scheduling route */}
-                    <Route path="/delivery-scheduling" element={<DeliveryScheduling />} />
+                <Route path="/mandate-form" element={<MandateVerificationForm />} />
 
-                    {/* Installation Confirmation route */}
-                    <Route path="/installation-confirmation" element={<InstallationConfirmation />} />
+                {/* Scrap4New route */}
+                <Route path="/scrap4new" element={<Scrap4New />} />
 
-                    <Route path="/repayment-payment" element={<RepaymentPaymentForm />} />
-
-                    <Route path="/mandate-form" element={<MandateVerificationForm />} />
-
-                    {/* 404 route */}
-                    <Route path="*" element={<NotFound />} />
-                </Routes>
-            </BrowserRouter>
-        </>
+                {/* 404 route */}
+                <Route path="*" element={<NotFound />} />
+            </Routes>
+        </BrowserRouter>
     );
 }
 

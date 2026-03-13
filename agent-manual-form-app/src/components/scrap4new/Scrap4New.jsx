@@ -6,7 +6,7 @@ import Logo from '../LogoWithVariant.jsx';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const SCRAP_API = 'https://web-production-80fc1.up.railway.app/api/scrap-form';
+const SCRAP_API = 'https://web-production-80fc1.up.railway.app/api/scrap-form/';
 const ACCENT    = '#f7623b';
 
 const koolboksProducts = [

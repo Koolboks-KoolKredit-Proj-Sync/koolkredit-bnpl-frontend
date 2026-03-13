@@ -6,7 +6,7 @@ import Logo from '../LogoWithVariant.jsx';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const SCRAP_API = 'https://web-production-80fc1.up.railway.app/api/scrap-form/';
+const SCRAP_API = 'https://web-production-80fc1.up.railway.app/api/scrap-forms/';
 const ACCENT    = '#f7623b';
 
 const koolboksProducts = [
@@ -430,11 +430,11 @@ function Scrap4New() {
         fd.append('selected_issues',      form.selectedIssues.join(', '));
         fd.append('grand_total',          grandTotal.toFixed(2));
 
-        // Product details (concatenated for backend, individual for AgentEntryForm update)
-        const productNames  = products.map(p => `${p.name}${p.quantity > 1 ? ` ×${p.quantity}` : ''}`).join(' + ');
-        const productSizes  = products.map(p => p.size).join(', ');
-        fd.append('product_names', productNames);
-        fd.append('product_sizes', productSizes);
+
+        // Keep product info for navigation context only (not model fields)
+        const productNames = products.map(p => `${p.name}${p.quantity > 1 ? ` ×${p.quantity}` : ''}`).join(' + ');
+        const productSizes = products.map(p => p.size).join(', ');
+
 
         // Media files (snake_case keys)
         const mediaMap = {
@@ -453,10 +453,21 @@ function Scrap4New() {
 
         try {
             const response = await fetch(SCRAP_API, { method: 'POST', body: fd });
-            const result   = await response.json();
 
-            if (response.ok && (result.success !== false)) {
-                // Save submission context so PIN page can pass data back to AgentEntryForm
+            // Read raw text first — never call .json() on HTML error pages (404/500)
+            const rawText = await response.text();
+            const contentType = response.headers.get('content-type') || '';
+
+            if (!response.ok) {
+                throw new Error('Server returned ' + response.status + ' ' + response.statusText + '. Please ensure the backend endpoint is deployed correctly.');
+            }
+            if (!contentType.includes('application/json')) {
+                throw new Error('Unexpected server response format. Please contact support.');
+            }
+
+            const result = JSON.parse(rawText);
+
+            if (result.success !== false) {
                 const scrapContext = {
                     submissionId:  result.id || result.submission_id || null,
                     productName:   productNames,
@@ -464,20 +475,17 @@ function Scrap4New() {
                     grandTotal:    grandTotal,
                     mobileNumber:  form.mobileNumber,
                     customerName:  form.customerName,
-                    // Pass through everything from incoming so AgentEntryForm retains its state
                     ...incoming,
                 };
 
                 sessionStorage.setItem('scrap4newContext', JSON.stringify(scrapContext));
-
-                // Route to PIN verification page
                 navigate('/scrap4new-pin', { state: scrapContext });
             } else {
                 Swal.fire({ icon: 'error', title: 'Submission Failed', text: result.message || 'Please try again.' });
             }
         } catch (err) {
             console.error('Scrap4New submit error:', err);
-            Swal.fire({ icon: 'error', title: 'Network Error', text: 'Could not reach the server. Please check your connection and try again.' });
+            Swal.fire({ icon: 'error', title: 'Submission Error', text: err.message || 'Could not reach the server. Please try again.' });
         } finally {
             setIsSubmitting(false);
         }
@@ -745,15 +753,3 @@ function Scrap4New() {
 }
 
 export default Scrap4New;
-
-
-
-
-
-
-
-
-
-
-
-

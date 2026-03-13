@@ -20,6 +20,7 @@ import HomePage from "./components/HomePage.jsx";
 import Logo from "./components/LogoWithVariant.jsx";
 import MandateVerificationForm from "./components/delivery/MandateVerificationForm.jsx";
 import Scrap4New from "./components/scrap4new/Scrap4New.jsx";
+import Scrap4NewPin from "./components/scrap4new/Scrap4NewPin.jsx";
 
 function App(){
     return (
@@ -73,6 +74,7 @@ function App(){
 
                 {/* Scrap4New route */}
                 <Route path="/scrap4new" element={<Scrap4New />} />
+                <Route path="/scrap4new-pin" element={<Scrap4NewPin />} />
 
                 {/* 404 route */}
                 <Route path="*" element={<NotFound />} />

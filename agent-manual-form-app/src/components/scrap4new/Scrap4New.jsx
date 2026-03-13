@@ -4,7 +4,10 @@ import Swal from 'sweetalert2';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Logo from '../LogoWithVariant.jsx';
 
-// ─── Data ─────────────────────────────────────────────────────────────────────
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const SCRAP_API = 'https://web-production-80fc1.up.railway.app/api/scrap-form';
+const ACCENT    = '#f7623b';
 
 const koolboksProducts = [
     { size: '208L',  name: 'Koolboks Solar Freezer (DC)',                  price: 684000 },
@@ -20,7 +23,6 @@ const koolboksProducts = [
     { size: '750L',  name: 'AC Inverter Freezer',                          price: 1392000 },
 ];
 
-// Combined product list: Koolboks named products first, then all brands (brand-only entries have no preset size/price)
 const allBrands = [
     "Samsung","LG","Whirlpool","Bosch","Panasonic","Haier","Hisense","Midea",
     "Sharp","Electrolux","Scanfrost","Nexus","Polystar","Royal","Bruhm",
@@ -63,16 +65,12 @@ const scrapIssues = [
     "Scrap doesn't turn on",
 ];
 
-const ACCENT = '#f7623b';
 const inputCls = 'w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none transition';
 const focusOn  = e => (e.target.style.borderColor = ACCENT);
 const focusOff = e => (e.target.style.borderColor = '#374151');
-
-// Build a combined option key for koolboks preset entries
 const koolboksKey = p => `KB__${p.name}__${p.size}__${p.price}`;
 
-// ─── Video-only MediaField ─────────────────────────────────────────────────────
-// allowPhoto=true enables photo snap; allowPhoto=false = video-only (for scrap video section)
+// ─── MediaField ───────────────────────────────────────────────────────────────
 
 function MediaField({ label, accept, hint, value, onChange, allowPhoto = true, allowVideo = false, required }) {
     const fileRef   = useRef(null);
@@ -88,11 +86,10 @@ function MediaField({ label, accept, hint, value, onChange, allowPhoto = true, a
     const [recording, setRecording] = useState(false);
     const [recMode,   setRecMode]   = useState('photo');
 
-    const preview = value ? (value instanceof Blob ? URL.createObjectURL(value) : value) : null;
-    const isVideoFile = value && (
-        (value instanceof Blob && value.type?.startsWith('video')) ||
-        (typeof value === 'string' && /video/i.test(value))
-    );
+    const preview      = value ? (value instanceof Blob ? URL.createObjectURL(value) : value) : null;
+    const isVideoFile  = value && ((value instanceof Blob && value.type?.startsWith('video')) || (typeof value === 'string' && /video/i.test(value)));
+    const btnCount     = [true, allowPhoto, allowVideo].filter(Boolean).length;
+    const gridCols     = btnCount === 1 ? 'grid-cols-1' : btnCount === 2 ? 'grid-cols-2' : 'grid-cols-3';
 
     const openCam = async (mode = 'photo', f = 'environment') => {
         setCamErr('');
@@ -103,9 +100,7 @@ function MediaField({ label, accept, hint, value, onChange, allowPhoto = true, a
                 audio: mode === 'video',
             });
             setStream(ms); setFacing(f); setRecMode(mode); setShowCam(true);
-            setTimeout(() => {
-                if (videoRef.current) { videoRef.current.srcObject = ms; videoRef.current.play().catch(() => {}); }
-            }, 100);
+            setTimeout(() => { if (videoRef.current) { videoRef.current.srcObject = ms; videoRef.current.play().catch(() => {}); } }, 100);
         } catch { setCamErr('Could not access camera. Please check permissions.'); setShowCam(true); }
     };
 
@@ -134,10 +129,6 @@ function MediaField({ label, accept, hint, value, onChange, allowPhoto = true, a
     };
     const stopRec = () => { if (mrRef.current) mrRef.current.stop(); setRecording(false); };
 
-    // How many action buttons to show
-    const btnCount = [true, allowPhoto, allowVideo].filter(Boolean).length;
-    const gridCols = btnCount === 1 ? 'grid-cols-1' : btnCount === 2 ? 'grid-cols-2' : 'grid-cols-3';
-
     return (
         <div>
             <label className="block text-sm font-medium mb-1" style={{ color: ACCENT }}>
@@ -157,19 +148,16 @@ function MediaField({ label, accept, hint, value, onChange, allowPhoto = true, a
                 </div>
             ) : (
                 <div className={`grid gap-2 ${gridCols}`}>
-                    {/* Upload */}
                     <button type="button" onClick={() => fileRef.current?.click()}
                             className="flex flex-col items-center justify-center gap-1 py-4 rounded-lg border border-gray-700 text-gray-400 hover:text-white hover:border-[#f7623b] transition text-xs cursor-pointer bg-gray-900">
                         <Upload size={17} /><span>Upload</span>
                     </button>
-                    {/* Snap photo — only if allowPhoto */}
                     {allowPhoto && (
                         <button type="button" onClick={() => openCam('photo')}
                                 className="flex flex-col items-center justify-center gap-1 py-4 rounded-lg border border-gray-700 text-gray-400 hover:text-white hover:border-[#f7623b] transition text-xs cursor-pointer bg-gray-900">
                             <Camera size={17} /><span>Snap Photo</span>
                         </button>
                     )}
-                    {/* Record video — only if allowVideo */}
                     {allowVideo && (
                         <button type="button" onClick={() => openCam('video')}
                                 className="flex flex-col items-center justify-center gap-1 py-4 rounded-lg border border-gray-700 text-gray-400 hover:text-white hover:border-[#f7623b] transition text-xs cursor-pointer bg-gray-900">
@@ -183,7 +171,6 @@ function MediaField({ label, accept, hint, value, onChange, allowPhoto = true, a
                    onChange={e => { if (e.target.files[0]) onChange(e.target.files[0]); }} className="hidden" />
             <canvas ref={canvasRef} className="hidden" />
 
-            {/* Camera / recorder modal */}
             {showCam && (
                 <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[60] p-4">
                     <div className="bg-gray-900 rounded-2xl p-4 sm:p-6 w-full max-w-lg max-h-screen overflow-y-auto">
@@ -195,15 +182,10 @@ function MediaField({ label, accept, hint, value, onChange, allowPhoto = true, a
                                 <X className="text-white" size={20} />
                             </button>
                         </div>
-
                         <div className="relative rounded-lg overflow-hidden bg-gray-800 mb-4">
-                            {camErr && (
-                                <div className="absolute inset-0 flex items-center justify-center bg-gray-900 text-red-400 p-4 text-center z-10 text-sm rounded-lg">{camErr}</div>
-                            )}
-                            <video ref={videoRef} autoPlay playsInline muted={recMode === 'photo'}
-                                   className="w-full rounded-lg"
-                                   style={{ transform: facing === 'user' ? 'scaleX(-1)' : 'none', minHeight: 220, maxHeight: 380, objectFit: 'cover' }}
-                            />
+                            {camErr && <div className="absolute inset-0 flex items-center justify-center bg-gray-900 text-red-400 p-4 text-center z-10 text-sm rounded-lg">{camErr}</div>}
+                            <video ref={videoRef} autoPlay playsInline muted={recMode === 'photo'} className="w-full rounded-lg"
+                                   style={{ transform: facing === 'user' ? 'scaleX(-1)' : 'none', minHeight: 220, maxHeight: 380, objectFit: 'cover' }} />
                             {recMode === 'photo' && (
                                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                                     <div className="border-4 rounded-full"
@@ -212,29 +194,23 @@ function MediaField({ label, accept, hint, value, onChange, allowPhoto = true, a
                             )}
                             {recording && (
                                 <div className="absolute top-3 left-3 flex items-center gap-2 bg-black bg-opacity-60 px-2 py-1 rounded-full">
-                                    <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                                    <span className="text-white text-xs font-semibold">REC</span>
+                                    <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" /><span className="text-white text-xs font-semibold">REC</span>
                                 </div>
                             )}
                             <button onClick={() => openCam(recMode, facing === 'user' ? 'environment' : 'user')}
-                                    className="absolute top-3 right-3 p-2 rounded-full text-white hover:opacity-80 cursor-pointer"
-                                    style={{ backgroundColor: ACCENT }}><RefreshCw size={15} /></button>
+                                    className="absolute top-3 right-3 p-2 rounded-full text-white hover:opacity-80 cursor-pointer" style={{ backgroundColor: ACCENT }}>
+                                <RefreshCw size={15} /></button>
                         </div>
-
                         {recMode === 'photo' ? (
-                            <button onClick={capturePhoto}
-                                    className="w-full py-3 rounded-lg font-bold text-white hover:opacity-90 cursor-pointer transition"
-                                    style={{ backgroundColor: ACCENT }}>
+                            <button onClick={capturePhoto} className="w-full py-3 rounded-lg font-bold text-white hover:opacity-90 cursor-pointer transition" style={{ backgroundColor: ACCENT }}>
                                 <Camera className="inline mr-2" size={17} /> Capture Photo
                             </button>
                         ) : !recording ? (
-                            <button onClick={startRec}
-                                    className="w-full py-3 rounded-lg font-bold text-white hover:opacity-90 cursor-pointer transition bg-red-600">
+                            <button onClick={startRec} className="w-full py-3 rounded-lg font-bold text-white hover:opacity-90 cursor-pointer transition bg-red-600">
                                 <Video className="inline mr-2" size={17} /> Start Recording
                             </button>
                         ) : (
-                            <button onClick={stopRec}
-                                    className="w-full py-3 rounded-lg font-bold text-white hover:opacity-90 cursor-pointer transition bg-gray-700">
+                            <button onClick={stopRec} className="w-full py-3 rounded-lg font-bold text-white hover:opacity-90 cursor-pointer transition bg-gray-700">
                                 ⏹ Stop &amp; Save
                             </button>
                         )}
@@ -245,48 +221,40 @@ function MediaField({ label, accept, hint, value, onChange, allowPhoto = true, a
     );
 }
 
-// ─── Product Row (for "Product of Interest" multi-item section) ───────────────
+// ─── ProductRow ───────────────────────────────────────────────────────────────
 
 function ProductRow({ index, item, onChange, onRemove, showRemove }) {
-    // Determine if this is a koolboks preset selection
     const isKoolboks = item.selection.startsWith('KB__');
-    const isBrandOnly = item.selection.startsWith('BRAND__');
-    const locked = isKoolboks; // size & price are locked when koolboks preset chosen
+    const locked     = isKoolboks;
+    const subtotal   = (parseFloat(item.price) || 0) * (parseInt(item.quantity) || 1);
 
     const handleSelect = e => {
         const val = e.target.value;
         if (!val) { onChange({ ...item, selection: '', name: '', size: '', price: '', quantity: 1 }); return; }
         if (val.startsWith('KB__')) {
-            const parts = val.split('__'); // KB__name__size__price
+            const parts = val.split('__');
             onChange({ ...item, selection: val, name: parts[1], size: parts[2], price: parts[3], quantity: item.quantity });
         } else {
-            // Brand-only: keep name, clear size/price for manual entry
             const brand = val.replace('BRAND__', '');
             onChange({ ...item, selection: val, name: brand, size: '', price: '', quantity: item.quantity });
         }
     };
-
-    const subtotal = (parseFloat(item.price) || 0) * (parseInt(item.quantity) || 1);
 
     return (
         <div className="p-4 rounded-lg bg-gray-900 border border-gray-700 mb-3">
             <div className="flex justify-between items-center mb-3">
                 <span className="text-white font-semibold text-sm">Item {index + 1}</span>
                 {showRemove && (
-                    <button type="button" onClick={onRemove}
-                            className="p-1.5 rounded-lg text-red-400 hover:bg-red-900 transition cursor-pointer">
+                    <button type="button" onClick={onRemove} className="p-1.5 rounded-lg text-red-400 hover:bg-red-900 transition cursor-pointer">
                         <Trash2 size={16} />
                     </button>
                 )}
             </div>
-
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {/* Product / Brand selector */}
                 <div className="sm:col-span-2">
                     <label className="block text-xs font-medium mb-1.5" style={{ color: ACCENT }}>Product / Brand *</label>
                     <select value={item.selection} onChange={handleSelect}
-                            className={`${inputCls} cursor-pointer text-sm`}
-                            onFocus={focusOn} onBlur={focusOff}>
+                            className={`${inputCls} cursor-pointer text-sm`} onFocus={focusOn} onBlur={focusOff}>
                         <option value="">— Select a product or brand —</option>
                         <optgroup label="── Koolboks Products ──">
                             {koolboksProducts.map((p, i) => (
@@ -302,8 +270,6 @@ function ProductRow({ index, item, onChange, onRemove, showRemove }) {
                         </optgroup>
                     </select>
                 </div>
-
-                {/* Size */}
                 <div>
                     <label className="block text-xs font-medium mb-1.5" style={{ color: ACCENT }}>Size *</label>
                     <input type="text" value={item.size}
@@ -313,8 +279,6 @@ function ProductRow({ index, item, onChange, onRemove, showRemove }) {
                            onFocus={e => !locked && focusOn(e)} onBlur={e => !locked && focusOff(e)}
                            placeholder="e.g. 208L" />
                 </div>
-
-                {/* Price */}
                 <div>
                     <label className="block text-xs font-medium mb-1.5" style={{ color: ACCENT }}>Price (₦) *</label>
                     <input type="number" value={item.price}
@@ -324,17 +288,15 @@ function ProductRow({ index, item, onChange, onRemove, showRemove }) {
                            onFocus={e => !locked && focusOn(e)} onBlur={e => !locked && focusOff(e)}
                            placeholder="Enter price" />
                 </div>
-
-                {/* Quantity */}
                 <div className="sm:col-span-2">
                     <label className="block text-xs font-medium mb-1.5" style={{ color: ACCENT }}>Quantity</label>
                     <div className="flex items-center gap-3">
                         <button type="button"
                                 onClick={() => onChange({ ...item, quantity: Math.max(1, (item.quantity || 1) - 1) })}
                                 disabled={(item.quantity || 1) <= 1}
-                                className="w-10 h-10 rounded-lg font-bold text-white flex items-center justify-center hover:opacity-90 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition"
+                                className="w-10 h-10 rounded-lg font-bold text-white flex items-center justify-center hover:opacity-90 cursor-pointer disabled:opacity-40 transition"
                                 style={{ backgroundColor: ACCENT }}>−</button>
-                        <span className="w-10 text-center text-white font-semibold text-base">{item.quantity || 1}</span>
+                        <span className="w-10 text-center text-white font-semibold">{item.quantity || 1}</span>
                         <button type="button"
                                 onClick={() => onChange({ ...item, quantity: (item.quantity || 1) + 1 })}
                                 className="w-10 h-10 rounded-lg font-bold text-white flex items-center justify-center hover:opacity-90 cursor-pointer transition"
@@ -351,22 +313,21 @@ function ProductRow({ index, item, onChange, onRemove, showRemove }) {
     );
 }
 
-// ─── Main Form ────────────────────────────────────────────────────────────────
+// ─── Main Scrap4New Form ──────────────────────────────────────────────────────
 
 function Scrap4New() {
-    const navigate = useNavigate();
-    const location = useLocation();
-    const incoming = location.state || {};
+    const navigate  = useNavigate();
+    const location  = useLocation();
+    const incoming  = location.state || {};
 
-    // Pre-fill from AgentEntryForm navigation state
-    const prefilledName = [incoming.firstName, incoming.middleName, incoming.lastName]
-        .filter(Boolean).join(' ');
+    // Build readonly full name: prefer AgentEntryForm state fields, fallback to HomePage customerName
+    const agentName = [incoming.firstName, incoming.middleName, incoming.lastName].filter(Boolean).join(' ');
+    const readonlyName = agentName || incoming.customerName || '';
 
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // ── Core form fields
     const [form, setForm] = useState({
-        customerName:        prefilledName || '',
+        customerName:        readonlyName,
         mobileNumber:        incoming.mobileNumber || '',
         houseAddress:        '',
         scrapBrand:          '',
@@ -377,11 +338,9 @@ function Scrap4New() {
         selectedIssues:      [],
     });
 
-    // ── Products of interest (multi-row)
     const emptyProduct = () => ({ selection: '', name: '', size: '', price: '', quantity: 1 });
     const [products, setProducts] = useState([emptyProduct()]);
 
-    // ── Media
     const [media, setMedia] = useState({
         receiptOrAffidavit: null,
         selfieWithScrap:    null,
@@ -398,9 +357,7 @@ function Scrap4New() {
     const set    = (k, v) => setForm(p => ({ ...p, [k]: v }));
     const setMed = (k, v) => setMedia(p => ({ ...p, [k]: v }));
 
-    const updateProduct = (i, updated) => {
-        const next = [...products]; next[i] = updated; setProducts(next);
-    };
+    const updateProduct = (i, updated) => { const n = [...products]; n[i] = updated; setProducts(n); };
     const addProduct    = () => setProducts(p => [...p, emptyProduct()]);
     const removeProduct = i  => setProducts(p => p.filter((_, idx) => idx !== i));
 
@@ -409,102 +366,133 @@ function Scrap4New() {
     );
 
     const toggleIssue = issue =>
-        set('selectedIssues',
-            form.selectedIssues.includes(issue)
-                ? form.selectedIssues.filter(i => i !== issue)
-                : [...form.selectedIssues, issue]
+        set('selectedIssues', form.selectedIssues.includes(issue)
+            ? form.selectedIssues.filter(i => i !== issue)
+            : [...form.selectedIssues, issue]
         );
 
-    // ── Validation & Submit
-    const handleSubmit = async () => {
-        if (isSubmitting) return;
+    // ── Validation ────────────────────────────────────────────────────────────
 
-        // Customer
-        if (!form.customerName)  { Swal.fire({ icon: 'warning', title: 'Required', text: 'Customer name is required.' }); return; }
-        if (!form.mobileNumber)  { Swal.fire({ icon: 'warning', title: 'Required', text: 'Mobile number is required.' }); return; }
-        if (!form.houseAddress)  { Swal.fire({ icon: 'warning', title: 'Required', text: 'House address is required.' }); return; }
+    const validate = () => {
+        if (!form.customerName)   { Swal.fire({ icon: 'warning', title: 'Required', text: 'Customer name is required.' }); return false; }
+        if (!form.mobileNumber)   { Swal.fire({ icon: 'warning', title: 'Required', text: 'Mobile number is required.' }); return false; }
+        if (!form.houseAddress)   { Swal.fire({ icon: 'warning', title: 'Required', text: 'House address is required.' }); return false; }
 
-        // Products
         for (let i = 0; i < products.length; i++) {
             const p = products[i];
-            if (!p.selection) { Swal.fire({ icon: 'warning', title: 'Required', text: `Please select a product / brand for Item ${i + 1}.` }); return; }
-            if (!p.size)      { Swal.fire({ icon: 'warning', title: 'Required', text: `Please enter a size for Item ${i + 1}.` }); return; }
-            if (!p.price)     { Swal.fire({ icon: 'warning', title: 'Required', text: `Please enter a price for Item ${i + 1}.` }); return; }
+            if (!p.selection) { Swal.fire({ icon: 'warning', title: 'Required', text: `Please select a product / brand for Item ${i + 1}.` }); return false; }
+            if (!p.size)      { Swal.fire({ icon: 'warning', title: 'Required', text: `Please enter a size for Item ${i + 1}.` }); return false; }
+            if (!p.price)     { Swal.fire({ icon: 'warning', title: 'Required', text: `Please enter a price for Item ${i + 1}.` }); return false; }
         }
 
-        // Scrap
-        if (!form.scrapBrand)   { Swal.fire({ icon: 'warning', title: 'Required', text: 'Please select the scrap brand.' }); return; }
+        if (!form.scrapBrand)  { Swal.fire({ icon: 'warning', title: 'Required', text: 'Please select the scrap brand.' }); return false; }
         if (form.scrapBrand === 'Others' && !form.scrapBrandOtherSpec) {
-            Swal.fire({ icon: 'warning', title: 'Required', text: 'Please specify the scrap brand.' }); return;
+            Swal.fire({ icon: 'warning', title: 'Required', text: 'Please specify the scrap brand.' }); return false;
         }
-        if (!form.locationOfScrap) { Swal.fire({ icon: 'warning', title: 'Required', text: 'Location of scrap is required.' }); return; }
-        if (!form.receiptAvailable) { Swal.fire({ icon: 'warning', title: 'Required', text: 'Please indicate if a receipt is available.' }); return; }
+        if (!form.locationOfScrap)   { Swal.fire({ icon: 'warning', title: 'Required', text: 'Location of scrap is required.' }); return false; }
+        if (!form.receiptAvailable)  { Swal.fire({ icon: 'warning', title: 'Required', text: 'Please indicate if a receipt is available.' }); return false; }
         if (!media.receiptOrAffidavit) {
             Swal.fire({ icon: 'warning', title: 'Required', text: form.receiptAvailable === 'Yes' ? 'Please provide the receipt.' : 'Please provide the sworn affidavit.' });
-            return;
+            return false;
         }
-        if (!media.selfieWithScrap) { Swal.fire({ icon: 'warning', title: 'Required', text: 'Please provide a selfie with the scrap.' }); return; }
+        if (!media.selfieWithScrap) { Swal.fire({ icon: 'warning', title: 'Required', text: 'Please provide a selfie with the scrap.' }); return false; }
 
-        // All 4 photos
-        const photoFields = [
-            ['scrapBody', 'scrap body photo'],
-            ['scrapTop', 'scrap top photo'],
-            ['scrapCompressor', 'scrap compressor photo'],
-            ['scrapInside', 'scrap inside photo'],
-        ];
-        for (const [key, label] of photoFields) {
-            if (!media[key]) { Swal.fire({ icon: 'warning', title: 'Required', text: `Please provide the ${label}.` }); return; }
+        for (const [key, label] of [['scrapBody','body photo'],['scrapTop','top photo'],['scrapCompressor','compressor photo'],['scrapInside','inside photo']]) {
+            if (!media[key]) { Swal.fire({ icon: 'warning', title: 'Required', text: `Please provide the scrap ${label}.` }); return false; }
         }
-
-        // All 4 videos
-        const videoFields = [
-            ['videoBody', 'body video'],
-            ['videoTop', 'top video'],
-            ['videoCompressor', 'compressor video'],
-            ['videoInside', 'inside video'],
-        ];
-        for (const [key, label] of videoFields) {
-            if (!media[key]) { Swal.fire({ icon: 'warning', title: 'Required', text: `Please provide the ${label}.` }); return; }
+        for (const [key, label] of [['videoBody','body video'],['videoTop','top video'],['videoCompressor','compressor video'],['videoInside','inside video']]) {
+            if (!media[key]) { Swal.fire({ icon: 'warning', title: 'Required', text: `Please provide the ${label}.` }); return false; }
         }
+        if (!form.workingCondition)        { Swal.fire({ icon: 'warning', title: 'Required', text: 'Please describe the working condition.' }); return false; }
+        if (form.selectedIssues.length === 0) { Swal.fire({ icon: 'warning', title: 'Required', text: 'Please select at least one issue.' }); return false; }
 
-        if (!form.workingCondition) { Swal.fire({ icon: 'warning', title: 'Required', text: 'Please describe the working condition.' }); return; }
-        if (form.selectedIssues.length === 0) { Swal.fire({ icon: 'warning', title: 'Required', text: 'Please select at least one issue.' }); return; }
+        return true;
+    };
+
+    // ── Submit ────────────────────────────────────────────────────────────────
+
+    const handleSubmit = async () => {
+        if (isSubmitting) return;
+        if (!validate()) return;
 
         setIsSubmitting(true);
+
+        // Build FormData matching Django backend field names (snake_case)
         const fd = new FormData();
-        Object.entries(form).forEach(([k, v]) => fd.append(k, Array.isArray(v) ? v.join(', ') : v));
-        products.forEach((p, i) => {
-            fd.append(`product_${i}_name`, p.name);
-            fd.append(`product_${i}_size`, p.size);
-            fd.append(`product_${i}_price`, p.price);
-            fd.append(`product_${i}_quantity`, p.quantity);
-        });
-        fd.append('grandTotal', grandTotal);
-        Object.entries(media).forEach(([k, v]) => { if (v) fd.append(k, v); });
+        fd.append('customer_name',        form.customerName);
+        fd.append('mobile_number',        form.mobileNumber);
+        fd.append('house_address',        form.houseAddress);
+        fd.append('scrap_brand',          form.scrapBrand === 'Others' ? form.scrapBrandOtherSpec : form.scrapBrand);
+        fd.append('scrap_brand_other_spec', form.scrapBrandOtherSpec || '');
+        fd.append('location_of_scrap',    form.locationOfScrap);
+        fd.append('receipt_available',    form.receiptAvailable);
+        fd.append('working_condition',    form.workingCondition);
+        fd.append('selected_issues',      form.selectedIssues.join(', '));
+        fd.append('grand_total',          grandTotal.toFixed(2));
+
+        // Product details (concatenated for backend, individual for AgentEntryForm update)
+        const productNames  = products.map(p => `${p.name}${p.quantity > 1 ? ` ×${p.quantity}` : ''}`).join(' + ');
+        const productSizes  = products.map(p => p.size).join(', ');
+        fd.append('product_names', productNames);
+        fd.append('product_sizes', productSizes);
+
+        // Media files (snake_case keys)
+        const mediaMap = {
+            receipt_or_affidavit: media.receiptOrAffidavit,
+            selfie_with_scrap:    media.selfieWithScrap,
+            scrap_body:           media.scrapBody,
+            scrap_top:            media.scrapTop,
+            scrap_compressor:     media.scrapCompressor,
+            scrap_inside:         media.scrapInside,
+            video_body:           media.videoBody,
+            video_top:            media.videoTop,
+            video_compressor:     media.videoCompressor,
+            video_inside:         media.videoInside,
+        };
+        Object.entries(mediaMap).forEach(([k, v]) => { if (v) fd.append(k, v); });
 
         try {
-            // TODO: replace with real endpoint
-            await new Promise(r => setTimeout(r, 1600));
-            Swal.fire({ icon: 'success', title: 'Submitted!', text: 'Your Scrap4New form has been submitted successfully.' })
-                .then(() => navigate('/'));
-        } catch {
-            Swal.fire({ icon: 'error', title: 'Error', text: 'Submission failed. Please try again.' });
+            const response = await fetch(SCRAP_API, { method: 'POST', body: fd });
+            const result   = await response.json();
+
+            if (response.ok && (result.success !== false)) {
+                // Save submission context so PIN page can pass data back to AgentEntryForm
+                const scrapContext = {
+                    submissionId:  result.id || result.submission_id || null,
+                    productName:   productNames,
+                    productSize:   productSizes,
+                    grandTotal:    grandTotal,
+                    mobileNumber:  form.mobileNumber,
+                    customerName:  form.customerName,
+                    // Pass through everything from incoming so AgentEntryForm retains its state
+                    ...incoming,
+                };
+
+                sessionStorage.setItem('scrap4newContext', JSON.stringify(scrapContext));
+
+                // Route to PIN verification page
+                navigate('/scrap4new-pin', { state: scrapContext });
+            } else {
+                Swal.fire({ icon: 'error', title: 'Submission Failed', text: result.message || 'Please try again.' });
+            }
+        } catch (err) {
+            console.error('Scrap4New submit error:', err);
+            Swal.fire({ icon: 'error', title: 'Network Error', text: 'Could not reach the server. Please check your connection and try again.' });
         } finally {
             setIsSubmitting(false);
         }
     };
 
+    // ── Render ────────────────────────────────────────────────────────────────
+
     return (
-        <div className="min-h-screen flex items-center justify-center p-4 sm:p-6 lg:p-8"
-             style={{ backgroundColor: ACCENT }}>
+        <div className="min-h-screen flex items-center justify-center p-4 sm:p-6 lg:p-8" style={{ backgroundColor: ACCENT }}>
             <div className="w-full max-w-4xl bg-black rounded-xl sm:rounded-2xl shadow-2xl p-4 sm:p-6 lg:p-10">
 
-                {/* Logo */}
                 <div className="hidden sm:block fixed sm:top-3 sm:left-3 z-50 pointer-events-none">
                     <Logo size="large" />
                 </div>
 
-                {/* Heading */}
                 <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2 text-center" style={{ color: ACCENT }}>
                     Scrap4New
                 </h1>
@@ -522,16 +510,16 @@ function Scrap4New() {
                             <div className="sm:col-span-2">
                                 <label className="block text-sm font-medium mb-2" style={{ color: ACCENT }}>Customer Full Name *</label>
                                 <input type="text" value={form.customerName}
-                                       onChange={e => set('customerName', e.target.value)}
-                                       readOnly={!!prefilledName}
-                                       className={`${inputCls} ${prefilledName ? 'opacity-75 cursor-not-allowed' : ''}`}
-                                       onFocus={e => !prefilledName && focusOn(e)}
-                                       onBlur={e  => !prefilledName && focusOff(e)}
+                                       onChange={e => !readonlyName && set('customerName', e.target.value)}
+                                       readOnly={!!readonlyName}
+                                       className={`${inputCls} ${readonlyName ? 'opacity-75 cursor-not-allowed' : ''}`}
+                                       onFocus={e => !readonlyName && focusOn(e)}
+                                       onBlur={e  => !readonlyName && focusOff(e)}
                                        placeholder="Full name" />
-                                {prefilledName && (
+                                {readonlyName && (
                                     <p className="text-xs text-green-400 mt-1 flex items-center gap-1">
                                         <CheckCircle size={11} />
-                                        Pre-filled from entry form ({[incoming.firstName, incoming.middleName, incoming.lastName].filter(Boolean).join(' • ')})
+                                        {agentName ? 'Pre-filled from entry form' : 'Pre-filled from account verification'}
                                     </p>
                                 )}
                             </div>
@@ -564,36 +552,30 @@ function Scrap4New() {
                                 <Plus size={15} /> Add Item
                             </button>
                         </div>
-
                         {products.map((item, i) => (
                             <ProductRow key={i} index={i} item={item}
                                         onChange={updated => updateProduct(i, updated)}
                                         onRemove={() => removeProduct(i)}
                                         showRemove={products.length > 1} />
                         ))}
-
-                        {/* Grand total */}
                         <div className="mt-2 p-4 rounded-lg bg-gray-900 border-2 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2"
                              style={{ borderColor: ACCENT }}>
                             <div>
                                 <p className="text-white font-semibold text-sm sm:text-base">Grand Total</p>
                                 {products.filter(p => p.name).length > 0 && (
                                     <p className="text-gray-400 text-xs mt-0.5">
-                                        {products.filter(p => p.name).map((p, i) => `${p.name}${p.quantity > 1 ? ` ×${p.quantity}` : ''}`).join(' + ')}
+                                        {products.filter(p => p.name).map(p => `${p.name}${p.quantity > 1 ? ` ×${p.quantity}` : ''}`).join(' + ')}
                                     </p>
                                 )}
                             </div>
-                            <span className="text-2xl font-bold" style={{ color: ACCENT }}>
-                ₦{grandTotal.toLocaleString()}
-              </span>
+                            <span className="text-2xl font-bold" style={{ color: ACCENT }}>₦{grandTotal.toLocaleString()}</span>
                         </div>
                     </section>
 
-                    {/* ── 3. Scrap Product Details ─────────────────────────────────── */}
+                    {/* ── 3. Scrap Details ─────────────────────────────────────────── */}
                     <section className="border-b pb-6 mb-1" style={{ borderColor: ACCENT }}>
                         <h2 className="text-xl sm:text-2xl font-semibold mb-4 text-white">Scrap Product Details</h2>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-
                             <div>
                                 <label className="block text-sm font-medium mb-2" style={{ color: ACCENT }}>Scrap Brand *</label>
                                 <select value={form.scrapBrand}
@@ -603,7 +585,6 @@ function Scrap4New() {
                                     {allBrands.map((b, i) => <option key={i} value={b}>{b}</option>)}
                                 </select>
                             </div>
-
                             <div>
                                 <label className="block text-sm font-medium mb-2" style={{ color: ACCENT }}>Location of Scrap *</label>
                                 <input type="text" value={form.locationOfScrap}
@@ -611,7 +592,6 @@ function Scrap4New() {
                                        className={inputCls} onFocus={focusOn} onBlur={focusOff}
                                        placeholder="Where is the scrap located?" />
                             </div>
-
                             {form.scrapBrand === 'Others' && (
                                 <div className="sm:col-span-2">
                                     <label className="block text-sm font-medium mb-2" style={{ color: ACCENT }}>Specify Brand *</label>
@@ -644,15 +624,13 @@ function Scrap4New() {
                         </div>
                         {form.receiptAvailable === 'Yes' && (
                             <MediaField label="Receipt" required accept="image/*,application/pdf"
-                                        hint="Upload or snap a photo / PDF of your receipt."
-                                        value={media.receiptOrAffidavit} onChange={v => setMed('receiptOrAffidavit', v)}
-                                        allowPhoto />
+                                        hint="Upload or snap a photo/PDF of your receipt."
+                                        value={media.receiptOrAffidavit} onChange={v => setMed('receiptOrAffidavit', v)} allowPhoto />
                         )}
                         {form.receiptAvailable === 'No' && (
                             <MediaField label="Sworn Affidavit" required accept="image/*,application/pdf"
                                         hint="A sworn affidavit confirming ownership of the scrap is required."
-                                        value={media.receiptOrAffidavit} onChange={v => setMed('receiptOrAffidavit', v)}
-                                        allowPhoto />
+                                        value={media.receiptOrAffidavit} onChange={v => setMed('receiptOrAffidavit', v)} allowPhoto />
                         )}
                     </section>
 
@@ -661,8 +639,7 @@ function Scrap4New() {
                         <h2 className="text-xl sm:text-2xl font-semibold mb-2 text-white">Selfie with Scrap *</h2>
                         <p className="text-gray-400 text-sm mb-4">Stand beside the scrap and take a clear selfie showing both you and the appliance.</p>
                         <MediaField label="Selfie with scrap" required accept="image/*"
-                                    value={media.selfieWithScrap} onChange={v => setMed('selfieWithScrap', v)}
-                                    allowPhoto />
+                                    value={media.selfieWithScrap} onChange={v => setMed('selfieWithScrap', v)} allowPhoto />
                     </section>
 
                     {/* ── 6. Photos ────────────────────────────────────────────────── */}
@@ -670,34 +647,26 @@ function Scrap4New() {
                         <h2 className="text-xl sm:text-2xl font-semibold mb-2 text-white">Real-Time Photos of Scrap *</h2>
                         <p className="text-gray-400 text-sm mb-4">Provide a clear, real-time photo of each part of the appliance.</p>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                            {[
-                                { key: 'scrapBody',       label: 'Body' },
-                                { key: 'scrapTop',        label: 'Top' },
-                                { key: 'scrapCompressor', label: 'Compressor' },
-                                { key: 'scrapInside',     label: 'Inside' },
-                            ].map(({ key, label }) => (
+                            {[['scrapBody','Body'],['scrapTop','Top'],['scrapCompressor','Compressor'],['scrapInside','Inside']].map(([key, label]) => (
                                 <MediaField key={key} label={label} required accept="image/*"
                                             value={media[key]} onChange={v => setMed(key, v)} allowPhoto />
                             ))}
                         </div>
                     </section>
 
-                    {/* ── 7. Videos ─── (NO snap photo — upload or record only) ───── */}
+                    {/* ── 7. Videos (no snap photo) ─────────────────────────────────── */}
                     <section className="border-b pb-6 mb-1" style={{ borderColor: ACCENT }}>
                         <h2 className="text-xl sm:text-2xl font-semibold mb-2 text-white">Real-Time Videos of Scrap *</h2>
-                        <p className="text-gray-400 text-sm mb-4">Upload or record a short video for each part. <span style={{ color: ACCENT }}>Photo snap is not available here — videos only.</span></p>
+                        <p className="text-gray-400 text-sm mb-4">
+                            Upload or record a short video for each part.{' '}
+                            <span style={{ color: ACCENT }}>Videos only — photo snap is not available here.</span>
+                        </p>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                            {[
-                                { key: 'videoBody',       label: 'Body Video' },
-                                { key: 'videoTop',        label: 'Top Video' },
-                                { key: 'videoCompressor', label: 'Compressor Video' },
-                                { key: 'videoInside',     label: 'Inside Video' },
-                            ].map(({ key, label }) => (
+                            {[['videoBody','Body Video'],['videoTop','Top Video'],['videoCompressor','Compressor Video'],['videoInside','Inside Video']].map(([key, label]) => (
                                 <MediaField key={key} label={label} required accept="video/*"
                                             value={media[key]} onChange={v => setMed(key, v)}
                                             allowPhoto={false}
-                                            allowVideo
-                                />
+                                            allowVideo />
                             ))}
                         </div>
                     </section>
@@ -722,9 +691,9 @@ function Scrap4New() {
                                     <button key={issue} type="button" onClick={() => toggleIssue(issue)}
                                             className="flex items-start gap-2 px-3 py-3 rounded-lg text-left text-sm font-medium transition cursor-pointer hover:opacity-90"
                                             style={{
-                                                backgroundColor: on ? ACCENT    : '#111827',
-                                                color:           on ? 'white'   : '#9ca3af',
-                                                border:          on ? 'none'    : '1px solid #374151',
+                                                backgroundColor: on ? ACCENT   : '#111827',
+                                                color:           on ? 'white'  : '#9ca3af',
+                                                border:          on ? 'none'   : '1px solid #374151',
                                             }}>
                     <span className="flex-shrink-0 mt-0.5 w-4 h-4 rounded border-2 flex items-center justify-center"
                           style={{ borderColor: on ? 'white' : '#6b7280', backgroundColor: on ? 'rgba(255,255,255,0.2)' : 'transparent' }}>
@@ -760,8 +729,31 @@ function Scrap4New() {
 
                 </div>
             </div>
+
+            {/* Full-screen submitting overlay */}
+            {isSubmitting && (
+                <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+                    <div className="bg-gray-900 rounded-xl p-8 flex flex-col items-center gap-4 shadow-2xl">
+                        <Loader2 className="animate-spin" size={48} style={{ color: ACCENT }} />
+                        <p className="text-white font-semibold text-lg">Submitting your form…</p>
+                        <p className="text-gray-400 text-sm text-center">Please wait, uploading your files</p>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
 
 export default Scrap4New;
+
+
+
+
+
+
+
+
+
+
+
+

@@ -451,6 +451,12 @@ function Scrap4New() {
         };
         Object.entries(mediaMap).forEach(([k, v]) => { if (v) fd.append(k, v); });
 
+        // Debug: log all FormData entries before sending
+        console.log('=== FormData being sent ===');
+        for (const [key, val] of fd.entries()) {
+            console.log(key, ':', val instanceof Blob ? `Blob(${val.size} bytes, ${val.type})` : val);
+        }
+
         try {
             const response = await fetch(SCRAP_API, { method: 'POST', body: fd });
 
@@ -753,3 +759,5 @@ function Scrap4New() {
 }
 
 export default Scrap4New;
+// TRAILING SLASH REMINDER: SCRAP_API must end with /
+// const SCRAP_API = 'https://web-production-80fc1.up.railway.app/api/scrap-forms/';

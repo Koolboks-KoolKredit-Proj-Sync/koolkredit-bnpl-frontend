@@ -449,7 +449,28 @@ function Scrap4New() {
             video_compressor:     media.videoCompressor,
             video_inside:         media.videoInside,
         };
-        Object.entries(mediaMap).forEach(([k, v]) => { if (v) fd.append(k, v); });
+        // Append media files — give blobs a proper extension so Django's ImageField validator accepts them
+        const imageKeys = ['receipt_or_affidavit', 'selfie_with_scrap', 'scrap_body', 'scrap_top', 'scrap_compressor', 'scrap_inside'];
+        const videoKeys = ['video_body', 'video_top', 'video_compressor', 'video_inside'];
+        Object.entries(mediaMap).forEach(([k, v]) => {
+            if (!v) return;
+            if (v instanceof Blob) {
+                if (videoKeys.includes(k)) {
+                    // Give video blobs a .webm extension
+                    const ext  = v.type.includes('mp4') ? 'mp4' : 'webm';
+                    const file = new File([v], `${k}.${ext}`, { type: v.type || 'video/webm' });
+                    fd.append(k, file, `${k}.${ext}`);
+                } else {
+                    // Give image blobs a .jpg extension
+                    const ext  = v.type.includes('png') ? 'png' : 'jpg';
+                    const mime = v.type || 'image/jpeg';
+                    const file = new File([v], `${k}.${ext}`, { type: mime });
+                    fd.append(k, file, `${k}.${ext}`);
+                }
+            } else {
+                fd.append(k, v);
+            }
+        });
 
         // Debug: log all FormData entries before sending
         console.log('=== FormData being sent ===');

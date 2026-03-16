@@ -6,7 +6,7 @@ import Logo from '../LogoWithVariant.jsx';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const SCRAP_API = 'https://web-production-80fc1.up.railway.app/api/scrap-forms';
+const SCRAP_API = 'https://web-production-80fc1.up.railway.app/api/scrap-forms/';
 const ACCENT    = '#f7623b';
 
 const koolboksProducts = [
@@ -429,6 +429,7 @@ function Scrap4New() {
         fd.append('working_condition',    form.workingCondition);
         fd.append('selected_issues',      form.selectedIssues.join(', '));
         fd.append('grand_total',          grandTotal.toFixed(2));
+        if (form.customerEmail) fd.append('customer_email', form.customerEmail);
 
 
         // Keep product info for navigation context only (not model fields)
@@ -496,17 +497,21 @@ function Scrap4New() {
 
             if (result.success !== false) {
                 const scrapContext = {
-                    submissionId:  result.id || result.submission_id || null,
-                    productName:   productNames,
-                    productSize:   productSizes,
-                    grandTotal:    grandTotal,
-                    mobileNumber:  form.mobileNumber,
-                    customerName:  form.customerName,
+                    submissionId:   result.id || result.submission_id || null,
+                    evaluationId:   result.evaluation_id || null,
+                    referenceId:    result.reference_id || '',
+                    productName:    productNames,
+                    productSize:    productSizes,
+                    grandTotal:     grandTotal,
+                    mobileNumber:   form.mobileNumber,
+                    customerName:   form.customerName,
+                    customerEmail:  form.customerEmail || '',
                     ...incoming,
                 };
 
                 sessionStorage.setItem('scrap4newContext', JSON.stringify(scrapContext));
-                navigate('/scrap4new-pin', { state: scrapContext });
+                // Route to success page — NOT directly to PIN page
+                navigate('/scrap4new-success', { state: scrapContext });
             } else {
                 Swal.fire({ icon: 'error', title: 'Submission Failed', text: result.message || 'Please try again.' });
             }

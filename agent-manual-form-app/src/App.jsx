@@ -21,6 +21,8 @@ import Logo from "./components/LogoWithVariant.jsx";
 import MandateVerificationForm from "./components/delivery/MandateVerificationForm.jsx";
 import Scrap4New from "./components/scrap4new/Scrap4New.jsx";
 import Scrap4NewPin from "./components/scrap4new/Scrap4NewPin.jsx";
+import Scrap4NewSuccess from "./components/scrap4new/Scrap4NewSuccess.jsx";
+import Scrap4NewAdminReview from "./components/scrap4new/Scrap4NewAdminReview.jsx";
 
 function App(){
     return (
@@ -75,6 +77,9 @@ function App(){
                 {/* Scrap4New route */}
                 <Route path="/scrap4new" element={<Scrap4New />} />
                 <Route path="/scrap4new-pin" element={<Scrap4NewPin />} />
+                <Route path="/scrap4new-success" element={<Scrap4NewSuccess />} />
+                {/*//<Route path="/scrap4new-pin" element={<Scrap4NewPin />} />*/}
+                <Route path="/admin-review/:token" element={<Scrap4NewAdminReview />} />
 
                 {/* 404 route */}
                 <Route path="*" element={<NotFound />} />

@@ -86,10 +86,10 @@ function MediaField({ label, accept, hint, value, onChange, allowPhoto = true, a
     const [recording, setRecording] = useState(false);
     const [recMode,   setRecMode]   = useState('photo');
 
-    const preview      = value ? (value instanceof Blob ? URL.createObjectURL(value) : value) : null;
-    const isVideoFile  = value && ((value instanceof Blob && value.type?.startsWith('video')) || (typeof value === 'string' && /video/i.test(value)));
-    const btnCount     = [true, allowPhoto, allowVideo].filter(Boolean).length;
-    const gridCols     = btnCount === 1 ? 'grid-cols-1' : btnCount === 2 ? 'grid-cols-2' : 'grid-cols-3';
+    const preview     = value ? (value instanceof Blob ? URL.createObjectURL(value) : value) : null;
+    const isVideoFile = value && ((value instanceof Blob && value.type?.startsWith('video')) || (typeof value === 'string' && /video/i.test(value)));
+    const btnCount    = [true, allowPhoto, allowVideo].filter(Boolean).length;
+    const gridCols    = btnCount === 1 ? 'grid-cols-1' : btnCount === 2 ? 'grid-cols-2' : 'grid-cols-3';
 
     const openCam = async (mode = 'photo', f = 'environment') => {
         setCamErr('');
@@ -194,12 +194,15 @@ function MediaField({ label, accept, hint, value, onChange, allowPhoto = true, a
                             )}
                             {recording && (
                                 <div className="absolute top-3 left-3 flex items-center gap-2 bg-black bg-opacity-60 px-2 py-1 rounded-full">
-                                    <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" /><span className="text-white text-xs font-semibold">REC</span>
+                                    <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                                    <span className="text-white text-xs font-semibold">REC</span>
                                 </div>
                             )}
                             <button onClick={() => openCam(recMode, facing === 'user' ? 'environment' : 'user')}
-                                    className="absolute top-3 right-3 p-2 rounded-full text-white hover:opacity-80 cursor-pointer" style={{ backgroundColor: ACCENT }}>
-                                <RefreshCw size={15} /></button>
+                                    className="absolute top-3 right-3 p-2 rounded-full text-white hover:opacity-80 cursor-pointer"
+                                    style={{ backgroundColor: ACCENT }}>
+                                <RefreshCw size={15} />
+                            </button>
                         </div>
                         {recMode === 'photo' ? (
                             <button onClick={capturePhoto} className="w-full py-3 rounded-lg font-bold text-white hover:opacity-90 cursor-pointer transition" style={{ backgroundColor: ACCENT }}>
@@ -303,8 +306,8 @@ function ProductRow({ index, item, onChange, onRemove, showRemove }) {
                                 style={{ backgroundColor: ACCENT }}>+</button>
                         {item.price && (
                             <span className="ml-2 text-gray-400 text-sm">
-                Subtotal: <span className="text-white font-semibold">₦{subtotal.toLocaleString()}</span>
-              </span>
+                                Subtotal: <span className="text-white font-semibold">₦{subtotal.toLocaleString()}</span>
+                            </span>
                         )}
                     </div>
                 </div>
@@ -316,12 +319,11 @@ function ProductRow({ index, item, onChange, onRemove, showRemove }) {
 // ─── Main Scrap4New Form ──────────────────────────────────────────────────────
 
 function Scrap4New() {
-    const navigate  = useNavigate();
-    const location  = useLocation();
-    const incoming  = location.state || {};
+    const navigate = useNavigate();
+    const location = useLocation();
+    const incoming = location.state || {};
 
-    // Build readonly full name: prefer AgentEntryForm state fields, fallback to HomePage customerName
-    const agentName = [incoming.firstName, incoming.middleName, incoming.lastName].filter(Boolean).join(' ');
+    const agentName    = [incoming.firstName, incoming.middleName, incoming.lastName].filter(Boolean).join(' ');
     const readonlyName = agentName || incoming.customerName || '';
 
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -329,6 +331,7 @@ function Scrap4New() {
     const [form, setForm] = useState({
         customerName:        readonlyName,
         mobileNumber:        incoming.mobileNumber || '',
+        customerEmail:       incoming.customerEmail || '',   // ← NEW
         houseAddress:        '',
         scrapBrand:          '',
         scrapBrandOtherSpec: '',
@@ -374,9 +377,17 @@ function Scrap4New() {
     // ── Validation ────────────────────────────────────────────────────────────
 
     const validate = () => {
-        if (!form.customerName)   { Swal.fire({ icon: 'warning', title: 'Required', text: 'Customer name is required.' }); return false; }
-        if (!form.mobileNumber)   { Swal.fire({ icon: 'warning', title: 'Required', text: 'Mobile number is required.' }); return false; }
-        if (!form.houseAddress)   { Swal.fire({ icon: 'warning', title: 'Required', text: 'House address is required.' }); return false; }
+        if (!form.customerName)  { Swal.fire({ icon: 'warning', title: 'Required', text: 'Customer name is required.' }); return false; }
+        if (!form.mobileNumber)  { Swal.fire({ icon: 'warning', title: 'Required', text: 'Mobile number is required.' }); return false; }
+
+        // Email validation
+        if (!form.customerEmail) { Swal.fire({ icon: 'warning', title: 'Required', text: 'Email address is required.' }); return false; }
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(form.customerEmail)) {
+            Swal.fire({ icon: 'warning', title: 'Invalid Email', text: 'Please enter a valid email address.' }); return false;
+        }
+
+        if (!form.houseAddress)  { Swal.fire({ icon: 'warning', title: 'Required', text: 'House address is required.' }); return false; }
 
         for (let i = 0; i < products.length; i++) {
             const p = products[i];
@@ -385,12 +396,12 @@ function Scrap4New() {
             if (!p.price)     { Swal.fire({ icon: 'warning', title: 'Required', text: `Please enter a price for Item ${i + 1}.` }); return false; }
         }
 
-        if (!form.scrapBrand)  { Swal.fire({ icon: 'warning', title: 'Required', text: 'Please select the scrap brand.' }); return false; }
+        if (!form.scrapBrand) { Swal.fire({ icon: 'warning', title: 'Required', text: 'Please select the scrap brand.' }); return false; }
         if (form.scrapBrand === 'Others' && !form.scrapBrandOtherSpec) {
             Swal.fire({ icon: 'warning', title: 'Required', text: 'Please specify the scrap brand.' }); return false;
         }
-        if (!form.locationOfScrap)   { Swal.fire({ icon: 'warning', title: 'Required', text: 'Location of scrap is required.' }); return false; }
-        if (!form.receiptAvailable)  { Swal.fire({ icon: 'warning', title: 'Required', text: 'Please indicate if a receipt is available.' }); return false; }
+        if (!form.locationOfScrap)  { Swal.fire({ icon: 'warning', title: 'Required', text: 'Location of scrap is required.' }); return false; }
+        if (!form.receiptAvailable) { Swal.fire({ icon: 'warning', title: 'Required', text: 'Please indicate if a receipt is available.' }); return false; }
         if (!media.receiptOrAffidavit) {
             Swal.fire({ icon: 'warning', title: 'Required', text: form.receiptAvailable === 'Yes' ? 'Please provide the receipt.' : 'Please provide the sworn affidavit.' });
             return false;
@@ -403,7 +414,7 @@ function Scrap4New() {
         for (const [key, label] of [['videoBody','body video'],['videoTop','top video'],['videoCompressor','compressor video'],['videoInside','inside video']]) {
             if (!media[key]) { Swal.fire({ icon: 'warning', title: 'Required', text: `Please provide the ${label}.` }); return false; }
         }
-        if (!form.workingCondition)        { Swal.fire({ icon: 'warning', title: 'Required', text: 'Please describe the working condition.' }); return false; }
+        if (!form.workingCondition)           { Swal.fire({ icon: 'warning', title: 'Required', text: 'Please describe the working condition.' }); return false; }
         if (form.selectedIssues.length === 0) { Swal.fire({ icon: 'warning', title: 'Required', text: 'Please select at least one issue.' }); return false; }
 
         return true;
@@ -417,27 +428,22 @@ function Scrap4New() {
 
         setIsSubmitting(true);
 
-        // Build FormData matching Django backend field names (snake_case)
         const fd = new FormData();
-        fd.append('customer_name',        form.customerName);
-        fd.append('mobile_number',        form.mobileNumber);
-        fd.append('house_address',        form.houseAddress);
-        fd.append('scrap_brand',          form.scrapBrand === 'Others' ? form.scrapBrandOtherSpec : form.scrapBrand);
+        fd.append('customer_name',          form.customerName);
+        fd.append('mobile_number',          form.mobileNumber);
+        fd.append('customer_email',         form.customerEmail);   // ← NEW
+        fd.append('house_address',          form.houseAddress);
+        fd.append('scrap_brand',            form.scrapBrand === 'Others' ? form.scrapBrandOtherSpec : form.scrapBrand);
         fd.append('scrap_brand_other_spec', form.scrapBrandOtherSpec || '');
-        fd.append('location_of_scrap',    form.locationOfScrap);
-        fd.append('receipt_available',    form.receiptAvailable);
-        fd.append('working_condition',    form.workingCondition);
-        fd.append('selected_issues',      form.selectedIssues.join(', '));
-        fd.append('grand_total',          grandTotal.toFixed(2));
-        if (form.customerEmail) fd.append('customer_email', form.customerEmail);
+        fd.append('location_of_scrap',      form.locationOfScrap);
+        fd.append('receipt_available',      form.receiptAvailable);
+        fd.append('working_condition',      form.workingCondition);
+        fd.append('selected_issues',        form.selectedIssues.join(', '));
+        fd.append('grand_total',            grandTotal.toFixed(2));
 
-
-        // Keep product info for navigation context only (not model fields)
         const productNames = products.map(p => `${p.name}${p.quantity > 1 ? ` ×${p.quantity}` : ''}`).join(' + ');
         const productSizes = products.map(p => p.size).join(', ');
 
-
-        // Media files (snake_case keys)
         const mediaMap = {
             receipt_or_affidavit: media.receiptOrAffidavit,
             selfie_with_scrap:    media.selfieWithScrap,
@@ -450,22 +456,20 @@ function Scrap4New() {
             video_compressor:     media.videoCompressor,
             video_inside:         media.videoInside,
         };
-        // Append media files — give blobs a proper extension so Django's ImageField validator accepts them
-        const imageKeys = ['receipt_or_affidavit', 'selfie_with_scrap', 'scrap_body', 'scrap_top', 'scrap_compressor', 'scrap_inside'];
-        const videoKeys = ['video_body', 'video_top', 'video_compressor', 'video_inside'];
+
+        const imageKeys = ['receipt_or_affidavit','selfie_with_scrap','scrap_body','scrap_top','scrap_compressor','scrap_inside'];
+        const videoKeys = ['video_body','video_top','video_compressor','video_inside'];
+
         Object.entries(mediaMap).forEach(([k, v]) => {
             if (!v) return;
             if (v instanceof Blob) {
                 if (videoKeys.includes(k)) {
-                    // Give video blobs a .webm extension
                     const ext  = v.type.includes('mp4') ? 'mp4' : 'webm';
                     const file = new File([v], `${k}.${ext}`, { type: v.type || 'video/webm' });
                     fd.append(k, file, `${k}.${ext}`);
                 } else {
-                    // Give image blobs a .jpg extension
                     const ext  = v.type.includes('png') ? 'png' : 'jpg';
-                    const mime = v.type || 'image/jpeg';
-                    const file = new File([v], `${k}.${ext}`, { type: mime });
+                    const file = new File([v], `${k}.${ext}`, { type: v.type || 'image/jpeg' });
                     fd.append(k, file, `${k}.${ext}`);
                 }
             } else {
@@ -473,21 +477,13 @@ function Scrap4New() {
             }
         });
 
-        // Debug: log all FormData entries before sending
-        console.log('=== FormData being sent ===');
-        for (const [key, val] of fd.entries()) {
-            console.log(key, ':', val instanceof Blob ? `Blob(${val.size} bytes, ${val.type})` : val);
-        }
-
         try {
             const response = await fetch(SCRAP_API, { method: 'POST', body: fd });
-
-            // Read raw text first — never call .json() on HTML error pages (404/500)
-            const rawText = await response.text();
+            const rawText  = await response.text();
             const contentType = response.headers.get('content-type') || '';
 
             if (!response.ok) {
-                throw new Error('Server returned ' + response.status + ' ' + response.statusText + '. Please ensure the backend endpoint is deployed correctly.');
+                throw new Error('Server returned ' + response.status + '. Please ensure the backend endpoint is deployed correctly.');
             }
             if (!contentType.includes('application/json')) {
                 throw new Error('Unexpected server response format. Please contact support.');
@@ -497,20 +493,18 @@ function Scrap4New() {
 
             if (result.success !== false) {
                 const scrapContext = {
-                    submissionId:   result.id || result.submission_id || null,
-                    evaluationId:   result.evaluation_id || null,
-                    referenceId:    result.reference_id || '',
-                    productName:    productNames,
-                    productSize:    productSizes,
-                    grandTotal:     grandTotal,
-                    mobileNumber:   form.mobileNumber,
-                    customerName:   form.customerName,
-                    customerEmail:  form.customerEmail || '',
+                    submissionId:  result.id || null,
+                    evaluationId:  result.evaluation_id || null,
+                    referenceId:   result.reference_id || '',
+                    productName:   productNames,
+                    productSize:   productSizes,
+                    grandTotal:    grandTotal,
+                    mobileNumber:  form.mobileNumber,
+                    customerName:  form.customerName,
+                    customerEmail: form.customerEmail,
                     ...incoming,
                 };
-
                 sessionStorage.setItem('scrap4newContext', JSON.stringify(scrapContext));
-                // Route to success page — NOT directly to PIN page
                 navigate('/scrap4new-success', { state: scrapContext });
             } else {
                 Swal.fire({ icon: 'error', title: 'Submission Failed', text: result.message || 'Please try again.' });
@@ -572,7 +566,21 @@ function Scrap4New() {
                                        placeholder="e.g. 08012345678" />
                             </div>
 
+                            {/* ── NEW: Email field ── */}
                             <div>
+                                <label className="block text-sm font-medium mb-2" style={{ color: ACCENT }}>Email Address *</label>
+                                <input
+                                    type="email"
+                                    value={form.customerEmail}
+                                    onChange={e => set('customerEmail', e.target.value)}
+                                    className={inputCls}
+                                    onFocus={focusOn}
+                                    onBlur={focusOff}
+                                    placeholder="e.g. customer@email.com"
+                                />
+                            </div>
+
+                            <div className="sm:col-span-2">
                                 <label className="block text-sm font-medium mb-2" style={{ color: ACCENT }}>House Address *</label>
                                 <input type="text" value={form.houseAddress}
                                        onChange={e => set('houseAddress', e.target.value)}
@@ -694,7 +702,7 @@ function Scrap4New() {
                         </div>
                     </section>
 
-                    {/* ── 7. Videos (no snap photo) ─────────────────────────────────── */}
+                    {/* ── 7. Videos ────────────────────────────────────────────────── */}
                     <section className="border-b pb-6 mb-1" style={{ borderColor: ACCENT }}>
                         <h2 className="text-xl sm:text-2xl font-semibold mb-2 text-white">Real-Time Videos of Scrap *</h2>
                         <p className="text-gray-400 text-sm mb-4">
@@ -731,14 +739,14 @@ function Scrap4New() {
                                     <button key={issue} type="button" onClick={() => toggleIssue(issue)}
                                             className="flex items-start gap-2 px-3 py-3 rounded-lg text-left text-sm font-medium transition cursor-pointer hover:opacity-90"
                                             style={{
-                                                backgroundColor: on ? ACCENT   : '#111827',
-                                                color:           on ? 'white'  : '#9ca3af',
-                                                border:          on ? 'none'   : '1px solid #374151',
+                                                backgroundColor: on ? ACCENT  : '#111827',
+                                                color:           on ? 'white' : '#9ca3af',
+                                                border:          on ? 'none'  : '1px solid #374151',
                                             }}>
-                    <span className="flex-shrink-0 mt-0.5 w-4 h-4 rounded border-2 flex items-center justify-center"
-                          style={{ borderColor: on ? 'white' : '#6b7280', backgroundColor: on ? 'rgba(255,255,255,0.2)' : 'transparent' }}>
-                      {on && <CheckCircle size={9} className="text-white" />}
-                    </span>
+                                        <span className="flex-shrink-0 mt-0.5 w-4 h-4 rounded border-2 flex items-center justify-center"
+                                              style={{ borderColor: on ? 'white' : '#6b7280', backgroundColor: on ? 'rgba(255,255,255,0.2)' : 'transparent' }}>
+                                            {on && <CheckCircle size={9} className="text-white" />}
+                                        </span>
                                         {issue}
                                     </button>
                                 );
@@ -785,5 +793,3 @@ function Scrap4New() {
 }
 
 export default Scrap4New;
-// TRAILING SLASH REMINDER: SCRAP_API must end with /
-// const SCRAP_API = 'https://web-production-80fc1.up.railway.app/api/scrap-forms/';

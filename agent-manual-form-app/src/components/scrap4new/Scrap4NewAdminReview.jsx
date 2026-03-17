@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import {
     Loader2, CheckCircle, AlertTriangle, Camera, Video,
-    User, Phone, MapPin, Wrench, BarChart3, Shield
+    User, Phone, MapPin, BarChart3, Shield
 } from 'lucide-react';
 import Swal from 'sweetalert2';
+import { useParams } from 'react-router-dom';
 import Logo from '../LogoWithVariant.jsx';
 
 const ACCENT      = '#f7623b';
@@ -61,8 +62,7 @@ function MediaThumb({ url, type = 'image', label }) {
 }
 
 function Scrap4NewAdminReview() {
-    // Extract token from URL path: /admin-review/:token/
-    const token = window.location.pathname.split('/admin-review/')[1]?.replace(/\/$/, '');
+    const { token } = useParams();
 
     const [loading,     setLoading]     = useState(true);
     const [error,       setError]       = useState('');

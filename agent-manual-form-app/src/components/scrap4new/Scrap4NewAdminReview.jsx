@@ -75,9 +75,7 @@ function Scrap4NewAdminReview() {
 
     useEffect(() => {
         if (!token) { setError('Invalid review link.'); setLoading(false); return; }
-        fetch(`${BACKEND_URL}/api/scrap-evaluation/admin-review/${token}/data/`, {
-            credentials: 'include',
-        })
+        fetch(`${BACKEND_URL}/api/scrap-evaluation/admin-review/${token}/data/`)
             .then(r => {
                 if (r.status === 403) throw new Error('Please log in to the admin panel first.');
                 if (!r.ok) throw new Error(`Server error ${r.status}`);
@@ -114,7 +112,6 @@ function Scrap4NewAdminReview() {
         try {
             const r = await fetch(`${BACKEND_URL}/api/scrap-evaluation/admin-review/${token}/submit/`, {
                 method:      'POST',
-                credentials: 'include',
                 headers:     { 'Content-Type': 'application/json' },
                 body:        JSON.stringify({ reduction_pct: pct, admin_notes: adminNotes }),
             });

@@ -1129,6 +1129,7 @@ function Scrap4New() {
     const navigate = useNavigate();
     const location = useLocation();
     const incoming = location.state || {};
+    console.log('Scrap4New incoming state:', incoming);
 
     const agentName    = [incoming.firstName, incoming.middleName, incoming.lastName].filter(Boolean).join(' ');
     const readonlyName = agentName || incoming.customerName || '';

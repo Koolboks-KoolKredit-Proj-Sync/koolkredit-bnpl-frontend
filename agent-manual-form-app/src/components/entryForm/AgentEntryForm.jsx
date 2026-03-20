@@ -5989,7 +5989,7 @@ function AgentEntryForm() {
     gender: '',
     bvn: '',
     nin: '',
-    mobileNumber: '',
+    mobileNumber: preFilledData.mobileNumber || '',
     passport: null,
     plan: '',
     installmentDuration: '',
@@ -6527,8 +6527,8 @@ function AgentEntryForm() {
 
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
 
-                          {/* Brand (read-only for Koolboks/KoolEnergies, hidden for Koolbuy since brand IS the product) */}
-                          {businessType !== 'Koolbuy' && (
+                          {/* Brand — hidden for Koolbuy and Scrap4New return */}
+                          {businessType !== 'Koolbuy' && !isScrap4NewReturn && (
                               <div>
                                 <label className="block text-sm font-medium mb-2" style={{ color: '#f7623b' }}>Brand</label>
                                 <input
@@ -6541,11 +6541,18 @@ function AgentEntryForm() {
                           )}
 
                           {/* Product Name */}
-                          <div className={businessType === 'Koolbuy' ? 'sm:col-span-3' : ''}>
+                          <div className={businessType === 'Koolbuy' || isScrap4NewReturn ? 'sm:col-span-3' : ''}>
                             <label className="block text-sm font-medium mb-2" style={{ color: '#f7623b' }}>
-                              {businessType === 'Koolbuy' ? 'Brand / Product Name *' : 'Product Name *'}
+                              {isScrap4NewReturn ? 'Product of Interest' : businessType === 'Koolbuy' ? 'Brand / Product Name *' : 'Product Name *'}
                             </label>
-                            {businessType === 'Koolbuy' ? (
+                            {isScrap4NewReturn ? (
+                                <input
+                                    type="text"
+                                    value={product.productName}
+                                    readOnly
+                                    className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-gray-300"
+                                />
+                            ) : businessType === 'Koolbuy' ? (
                                 <select
                                     value={product.productName}
                                     onChange={(e) => handleProductChange(index, e.target.value)}

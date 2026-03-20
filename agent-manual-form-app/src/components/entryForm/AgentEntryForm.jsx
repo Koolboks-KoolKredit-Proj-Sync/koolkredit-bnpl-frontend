@@ -5911,7 +5911,6 @@
 
 
 
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Camera, Upload, FileText, X, RefreshCw, Plus, Trash2, Loader2, CheckCircle } from 'lucide-react';
 
@@ -6030,6 +6029,9 @@ function AgentEntryForm() {
     }
   }, []);
   const hasMandateReference = !!(preFilledData.mandateReference);
+
+  // True when returning from Scrap4New PIN — product already submitted, show full form
+  const isScrap4NewReturn = !!(preFilledData.businessType === 'Scrap4New' && preFilledData.productName);
 
   const handleBusinessTypeChange = (type) => {
     setBusinessType(type);
@@ -6472,15 +6474,15 @@ function AgentEntryForm() {
                 ))}
               </div>
 
-              {/* Scrap4New CTA Button */}
-              {businessType === 'Scrap4New' && (
+              {/* Scrap4New CTA — only shown when starting fresh, NOT when returning from PIN */}
+              {businessType === 'Scrap4New' && !isScrap4NewReturn && (
                   <div className="mt-4 p-4 bg-gray-900 border border-gray-700 rounded-lg">
                     <p className="text-gray-400 text-sm mb-3">
                       Click below to open the Scrap4New submission form where you can enter scrap product details.
                     </p>
                     <button
                         type="button"
-                        onClick={() => navigate('/scrap4new')}
+                        onClick={() => navigate('/scrap4new', { state: preFilledData })}
                         className="w-full flex items-center justify-center px-6 py-3 rounded-lg font-semibold text-white transition hover:opacity-90 cursor-pointer"
                         style={{ backgroundColor: '#f7623b' }}
                     >
@@ -6490,27 +6492,29 @@ function AgentEntryForm() {
               )}
             </div>
 
-            {/* Product Details Section — hidden for Scrap4New */}
-            {businessType && businessType !== 'Scrap4New' && (
+            {/* Product Details Section — shown for all types including Scrap4New return */}
+            {businessType && (businessType !== 'Scrap4New' || isScrap4NewReturn) && (
                 <div className="border-b pb-4 sm:pb-6" style={{ borderColor: '#f7623b' }}>
                   <div className="flex justify-between items-center mb-3 sm:mb-4">
                     <h2 className="text-xl sm:text-2xl font-semibold text-white">Product Details</h2>
-                    <button
-                        type="button"
-                        onClick={addProduct}
-                        className="flex items-center px-3 py-2 rounded-lg text-white text-sm transition cursor-pointer hover:opacity-90"
-                        style={{ backgroundColor: '#f7623b' }}
-                    >
-                      <Plus size={16} className="mr-1" />
-                      Add Item
-                    </button>
+                    {!isScrap4NewReturn && (
+                        <button
+                            type="button"
+                            onClick={addProduct}
+                            className="flex items-center px-3 py-2 rounded-lg text-white text-sm transition cursor-pointer hover:opacity-90"
+                            style={{ backgroundColor: '#f7623b' }}
+                        >
+                          <Plus size={16} className="mr-1" />
+                          Add Item
+                        </button>
+                    )}
                   </div>
 
                   {products.map((product, index) => (
                       <div key={index} className="mb-4 p-4 rounded-lg bg-gray-900 border border-gray-700">
                         <div className="flex justify-between items-center mb-3">
                           <h3 className="text-lg font-semibold text-white">Item {index + 1}</h3>
-                          {products.length > 1 && (
+                          {products.length > 1 && !isScrap4NewReturn && (
                               <button
                                   type="button"
                                   onClick={() => removeProduct(index)}
@@ -6605,10 +6609,10 @@ function AgentEntryForm() {
                                     setProducts(newProducts);
                                   }
                                 }}
-                                readOnly={businessType !== 'Koolbuy'}
-                                className={`w-full px-4 py-3 border rounded-lg ${businessType === 'Koolbuy' ? 'bg-gray-900 border-gray-700 text-white focus:outline-none transition' : 'bg-gray-800 border-gray-600 text-gray-400'}`}
-                                onFocus={(e) => businessType === 'Koolbuy' && (e.target.style.borderColor = '#f7623b')}
-                                onBlur={(e) => businessType === 'Koolbuy' && (e.target.style.borderColor = '#374151')}
+                                readOnly={businessType !== 'Koolbuy' || isScrap4NewReturn}
+                                className={`w-full px-4 py-3 border rounded-lg ${(businessType === 'Koolbuy' && !isScrap4NewReturn) ? 'bg-gray-900 border-gray-700 text-white focus:outline-none transition' : 'bg-gray-800 border-gray-600 text-gray-400'}`}
+                                onFocus={(e) => (businessType === 'Koolbuy' && !isScrap4NewReturn) && (e.target.style.borderColor = '#f7623b')}
+                                onBlur={(e) => (businessType === 'Koolbuy' && !isScrap4NewReturn) && (e.target.style.borderColor = '#374151')}
                                 placeholder={businessType === 'Koolbuy' ? 'e.g., 500L, 2-door' : ''}
                             />
                           </div>
@@ -6626,10 +6630,10 @@ function AgentEntryForm() {
                                     setProducts(newProducts);
                                   }
                                 }}
-                                readOnly={businessType !== 'Koolbuy'}
-                                className={`w-full px-4 py-3 border rounded-lg ${businessType === 'Koolbuy' ? 'bg-gray-900 border-gray-700 text-white focus:outline-none transition' : 'bg-gray-800 border-gray-600 text-gray-400'}`}
-                                onFocus={(e) => businessType === 'Koolbuy' && (e.target.style.borderColor = '#f7623b')}
-                                onBlur={(e) => businessType === 'Koolbuy' && (e.target.style.borderColor = '#374151')}
+                                readOnly={businessType !== 'Koolbuy' || isScrap4NewReturn}
+                                className={`w-full px-4 py-3 border rounded-lg ${(businessType === 'Koolbuy' && !isScrap4NewReturn) ? 'bg-gray-900 border-gray-700 text-white focus:outline-none transition' : 'bg-gray-800 border-gray-600 text-gray-400'}`}
+                                onFocus={(e) => (businessType === 'Koolbuy' && !isScrap4NewReturn) && (e.target.style.borderColor = '#f7623b')}
+                                onBlur={(e) => (businessType === 'Koolbuy' && !isScrap4NewReturn) && (e.target.style.borderColor = '#374151')}
                                 placeholder={businessType === 'Koolbuy' ? 'Enter price' : ''}
                             />
                           </div>
@@ -6638,25 +6642,29 @@ function AgentEntryForm() {
                           <div className="sm:col-span-3">
                             <label className="block text-sm font-medium mb-2" style={{ color: '#f7623b' }}>Quantity</label>
                             <div className="flex items-center space-x-3">
-                              <button
-                                  type="button"
-                                  onClick={() => handleQuantityChange(index, -1)}
-                                  className="px-4 py-3 rounded-lg font-bold text-white transition cursor-pointer hover:opacity-90"
-                                  style={{ backgroundColor: '#f7623b' }}
-                                  disabled={product.quantity <= 1}
-                              >-</button>
+                              {!isScrap4NewReturn && (
+                                  <button
+                                      type="button"
+                                      onClick={() => handleQuantityChange(index, -1)}
+                                      className="px-4 py-3 rounded-lg font-bold text-white transition cursor-pointer hover:opacity-90"
+                                      style={{ backgroundColor: '#f7623b' }}
+                                      disabled={product.quantity <= 1}
+                                  >-</button>
+                              )}
                               <input
                                   type="number"
                                   value={product.quantity || 1}
                                   readOnly
                                   className="w-24 px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white text-center"
                               />
-                              <button
-                                  type="button"
-                                  onClick={() => handleQuantityChange(index, 1)}
-                                  className="px-4 py-3 rounded-lg font-bold text-white transition cursor-pointer hover:opacity-90"
-                                  style={{ backgroundColor: '#f7623b' }}
-                              >+</button>
+                              {!isScrap4NewReturn && (
+                                  <button
+                                      type="button"
+                                      onClick={() => handleQuantityChange(index, 1)}
+                                      className="px-4 py-3 rounded-lg font-bold text-white transition cursor-pointer hover:opacity-90"
+                                      style={{ backgroundColor: '#f7623b' }}
+                                  >+</button>
+                              )}
                               <span className="text-gray-400 ml-4">
                           Subtotal: <span className="text-white font-semibold">
                             ₦{((parseFloat(product.price) || 0) * (parseInt(product.quantity) || 1)).toLocaleString()}
@@ -6686,8 +6694,8 @@ function AgentEntryForm() {
                 </div>
             )}
 
-            {/* Personal Information — hidden for Scrap4New */}
-            {businessType !== 'Scrap4New' && (
+            {/* Personal Information — shown for all types including Scrap4New return */}
+            {(businessType !== 'Scrap4New' || isScrap4NewReturn) && (
                 <>
                   {/* Personal Information Section */}
                   <div className="border-b pb-4 sm:pb-6" style={{ borderColor: '#f7623b' }}>

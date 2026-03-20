@@ -6015,7 +6015,7 @@ function AgentEntryForm() {
 
   // ── Auto-populate when returning from Scrap4New PIN verification ──────────
   useEffect(() => {
-    if (preFilledData.businessType === 'Scrap4New' && preFilledData.productName) {
+    if (preFilledData.businessType === 'Scrap4New' && (preFilledData.productName || preFilledData.scrapReferenceId || preFilledData.totalPrice)) {
       setBusinessType('Scrap4New');
       setFormData(prev => ({ ...prev, brand: 'Scrap4New' }));
       // Pre-fill the scrap product as a single product row
@@ -6031,7 +6031,7 @@ function AgentEntryForm() {
   const hasMandateReference = !!(preFilledData.mandateReference);
 
   // True when returning from Scrap4New PIN — product already submitted, show full form
-  const isScrap4NewReturn = !!(preFilledData.businessType === 'Scrap4New' && preFilledData.productName);
+  const isScrap4NewReturn = !!(preFilledData.businessType === 'Scrap4New' && (preFilledData.productName || preFilledData.scrapReferenceId || preFilledData.totalPrice));
 
   const handleBusinessTypeChange = (type) => {
     setBusinessType(type);

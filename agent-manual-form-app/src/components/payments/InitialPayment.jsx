@@ -19,7 +19,7 @@ export default function BNPLPaymentForm() {
 
     // Fetch config keys from backend on mount
     useEffect(() => {
-        fetch('https://web-production-9f730.up.railway.app/api/config/keys')
+        fetch('https://web-production-88f7c.up.railway.app/api/config/keys')
             .then(res => res.json())
             .then(data => {
                 setPaystackPublicKey(data.paystackPublicKey);
@@ -102,7 +102,7 @@ export default function BNPLPaymentForm() {
         setIsLoading(true);
 
         try {
-            const response = await fetch('https://koolkredit-payment-integration-production.up.railway.app/v1/api/bnpl-payment/', {
+            const response = await fetch('https://koolkredit-payment-integration-production-2c72.up.railway.app/v1/api/bnpl-payment/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -154,7 +154,7 @@ export default function BNPLPaymentForm() {
             ref: paymentData.ref,
             currency: 'NGN',
             callback: function(response) {
-                window.location.href = `https://koolkredit-payment-integration-production.up.railway.app/v1/verify-payment/${paymentData.ref}/`;
+                window.location.href = `https://koolkredit-payment-integration-production-2c72.up.railway.app/v1/verify-payment/${paymentData.ref}/`;
             },
             onClose: function() {
                 setIsLoading(false);

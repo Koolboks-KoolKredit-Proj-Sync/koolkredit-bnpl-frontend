@@ -1673,7 +1673,7 @@ const SelfieLiveness = ({ onComplete }) => {
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
-const BASE_URL = "https://web-production-9f730.up.railway.app";
+const BASE_URL = "https://web-production-88f7c.up.railway.app";
 
 export default function GuarantorFormPage() {
     const { token } = useParams();

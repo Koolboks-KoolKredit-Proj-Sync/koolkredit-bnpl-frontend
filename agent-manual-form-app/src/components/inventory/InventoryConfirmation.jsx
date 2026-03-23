@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { CheckCircle, Calendar, User, Mail, Phone, Store, MapPin, Package, Box } from 'lucide-react';
 
 export default function InventoryConfirmation() {
-    const DJANGO_API_URL = 'https://koolkredit-payment-integration-production.up.railway.app';
+    const DJANGO_API_URL = 'https://koolkredit-payment-integration-production-2c72.up.railway.app/';
 
     const [isSubmitting, setIsSubmitting] = useState(false);
 

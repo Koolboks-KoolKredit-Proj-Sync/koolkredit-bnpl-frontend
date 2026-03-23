@@ -47,7 +47,7 @@ export default function RepaymentPaymentForm() {
             console.log('=== VALIDATING TOKEN ===');
             console.log('Token:', token);
 
-            const response = await fetch(`https://web-production-9f730.up.railway.app/v1/api/payment-tokens/validate/${token}`);
+            const response = await fetch(`https://web-production-88f7c.up.railway.app/v1/api/payment-tokens/validate/${token}`);
             const data = await response.json();
 
             console.log('Validation response:', data);
@@ -141,7 +141,7 @@ export default function RepaymentPaymentForm() {
 
             console.log('📤 Sending payload:', payload);
 
-            const response = await fetch('https://koolkredit-payment-integration-production.up.railway.app/v1/api/loan-repayment-payment/', {
+            const response = await fetch('https://koolkredit-payment-integration-production-2c72.up.railway.app/v1/api/loan-repayment-payment/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -233,7 +233,7 @@ export default function RepaymentPaymentForm() {
             console.log('📞 Calling Django verification endpoint...');
 
             const verifyResponse = await fetch(
-                'https://koolkredit-payment-integration-production.up.railway.app/v1/api/verify-loan-repayment-payment/',
+                'https://koolkredit-payment-integration-production-2c72.up.railway.app/v1/api/verify-loan-repayment-payment/',
                 {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },

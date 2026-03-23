@@ -16,11 +16,11 @@ function HomePage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [banksApiKey, setBanksApiKey] = useState('');
 
-    const BACKEND_API_URL = 'https://web-production-9f730.up.railway.app/api/debit-mandate';
+    const BACKEND_API_URL = 'https://web-production-88f7c.up.railway.app/api/debit-mandate';
 
     // Fetch keys from backend on mount
     useEffect(() => {
-        fetch('https://web-production-9f730.up.railway.app/api/config/keys')
+        fetch('https://web-production-88f7c.up.railway.app/api/config/keys')
             .then(res => res.json())
             .then(data => {
                 setBanksApiKey(data.monoBankApiKey);

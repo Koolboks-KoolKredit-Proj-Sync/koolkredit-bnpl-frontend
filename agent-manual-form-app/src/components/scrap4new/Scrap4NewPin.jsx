@@ -7,8 +7,8 @@ import Logo from '../LogoWithVariant.jsx';
 const ACCENT      = '#f7623b';
 const PIN_LENGTH  = 6;
 
-const PIN_VERIFY_API = 'https://web-production-80fc1.up.railway.app/api/scrap-evaluation/verify-pin/';
-const PIN_RESEND_API = 'https://web-production-80fc1.up.railway.app/api/scrap-evaluation/resend-pin/';
+const PIN_VERIFY_API = 'https://scrap4new-backend-production.up.railway.app/api/scrap-evaluation/verify-pin/';
+const PIN_RESEND_API = 'https://scrap4new-backend-production.up.railway.app/api/scrap-evaluation/resend-pin/';
 
 function Scrap4NewPin() {
     const navigate = useNavigate();

@@ -6305,7 +6305,7 @@ function AgentEntryForm() {
     if (formData.bankStatementMethod) formDataToSend.append('bankStatementMethod', formData.bankStatementMethod);
 
     try {
-      const response = await fetch('https://web-production-9f730.up.railway.app/api/agent-entry', {
+      const response = await fetch('https://web-production-88f7c.up.railway.app/api/agent-entry', {
         method: 'POST',
         body: formDataToSend
       });

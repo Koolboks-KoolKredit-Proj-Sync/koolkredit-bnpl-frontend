@@ -1031,8 +1031,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Camera, User, Mail, Phone, DollarSign, Calendar, MapPin, Store, CheckCircle, RefreshCw } from 'lucide-react';
 
 export default function AgentProofForm() {
-    const DJANGO_API_URL = 'https://koolkredit-payment-integration-production.up.railway.app';
-    const SPRING_API_URL = 'https://web-production-9f730.up.railway.app';
+    const DJANGO_API_URL = 'https://koolkredit-payment-integration-production-2c72.up.railway.app';
+    const SPRING_API_URL = 'https://web-production-88f7c.up.railway.app';
 
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -1241,7 +1241,7 @@ export default function AgentProofForm() {
 
             if (djangoResponse.ok && springResponse.ok) {
                 alert('Proof submitted successfully to both systems! Email sent to After Sales Team.');
-                window.location.href = '/https://koolkredit-payment-integration-production.up.railway.app/admin/login/?next=/admin/';
+                window.location.href = '/https://koolkredit-payment-integration-production-2c72.up.railway.app/admin/login/?next=/admin/';
             } else if (!djangoResponse.ok && springResponse.ok) {
                 throw new Error(`D may be already submitted: ${djangoData.message || 'Unknown error'}`);
             } else if (djangoResponse.ok && !springResponse.ok) {

@@ -62,7 +62,7 @@ export default function CustomerOtpVerification() {
     setIsLoading(true);
 
     try {
-      const response = await fetch("https://web-production-9f730.up.railway.app/api/agent-followup/verify-otp", {
+      const response = await fetch("https://web-production-88f7c.up.railway.app/api/agent-followup/verify-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -92,7 +92,7 @@ export default function CustomerOtpVerification() {
             if (result.isConfirmed) {
               try {
                 // Request guarantor link
-                const guarantorResponse = await fetch("https://web-production-9f730.up.railway.app/api/guarantor/request", {
+                const guarantorResponse = await fetch("https://web-production-88f7c.up.railway.app/api/guarantor/request", {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
                   // body: JSON.stringify({

@@ -8,7 +8,7 @@ import { useParams } from 'react-router-dom';
 import Logo from '../LogoWithVariant.jsx';
 
 const ACCENT      = '#f7623b';
-const BACKEND_URL = 'https://web-production-80fc1.up.railway.app';
+const BACKEND_URL = 'https://scrap4new-backend-production.up.railway.app';
 
 function ScoreBar({ value, max = 1 }) {
     const pct = Math.round((value / max) * 100);

@@ -2144,6 +2144,7 @@ function Scrap4New() {
 
             if (result.success !== false) {
                 const scrapContext = {
+                    ...incoming,
                     submissionId:  result.id || null,
                     evaluationId:  result.evaluation_id || null,
                     referenceId:   result.reference_id || '',
@@ -2153,7 +2154,7 @@ function Scrap4New() {
                     mobileNumber:  form.mobileNumber,
                     customerName:  form.customerName,
                     customerEmail: form.customerEmail,
-                    ...incoming,
+
                 };
                 sessionStorage.setItem('scrap4newContext', JSON.stringify(scrapContext));
                 navigate('/scrap4new-success', { state: scrapContext });

@@ -23,6 +23,9 @@ import Scrap4New from "./components/scrap4new/Scrap4New.jsx";
 import Scrap4NewPin from "./components/scrap4new/Scrap4NewPin.jsx";
 import Scrap4NewSuccess from "./components/scrap4new/Scrap4NewSuccess.jsx";
 import Scrap4NewAdminReview from "./components/scrap4new/Scrap4NewAdminReview.jsx";
+import ApplicationPending from "./components/followUpForm/ApplicationPending.jsx";
+import AdminCreditReview from "./components/followUpForm/AdminCreditReview.jsx";
+import ApplicationRejected from "./components/followUpForm/ApplicationRejected.jsx";
 
 function App(){
     return (
@@ -80,6 +83,12 @@ function App(){
                 <Route path="/scrap4new-success" element={<Scrap4NewSuccess />} />
                 {/*//<Route path="/scrap4new-pin" element={<Scrap4NewPin />} />*/}
                 <Route path="/admin-review/:token" element={<Scrap4NewAdminReview />} />
+
+
+                // Add these routes:
+                <Route path="/application-pending"               element={<ApplicationPending />} />
+                <Route path="/application-rejected/:token"       element={<ApplicationRejected />} />
+                <Route path="/admin/credit-review/:token"        element={<AdminCreditReview />} />
 
                 {/* 404 route */}
                 <Route path="*" element={<NotFound />} />

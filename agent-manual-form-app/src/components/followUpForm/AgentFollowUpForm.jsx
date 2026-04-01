@@ -3676,7 +3676,7 @@ export default function AgentFollowUpForm() {
             const payload = {
                 bvn: entryData.bvn,
                 customerAddress: homeAddress,
-                customerEmail: customerEmail,
+                customerEmail,
                 customerPhone: mobileNumber,
                 firstName: entryData.firstName || "",
                 lastName: entryData.lastName || ""
@@ -3695,21 +3695,31 @@ export default function AgentFollowUpForm() {
     };
 
     /**
-     * Pull credit report from FirstCentral via the credit-enquiries endpoint.
-     * Returns the full JSON response (or null on failure — non-blocking).
+     * Pull credit report from FirstCentral via the Decision Engine endpoint.
+     * POSTs { bvn } and returns the first item of the array response.
+     * Non-blocking — returns null on failure.
      */
     const pullCreditReport = async (bvn) => {
+        if (!bvn) {
+            console.warn('pullCreditReport: no BVN supplied — skipping');
+            return null;
+        }
         try {
+            console.log('Pulling credit report for BVN:', bvn);
             const response = await fetch(CREDIT_PULL_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ bvn })
+                body: JSON.stringify({ bvn })          // ← BVN correctly posted here
             });
             if (!response.ok) {
                 console.warn('Credit pull failed with status:', response.status);
                 return null;
             }
-            return await response.json();
+            const result = await response.json();
+            // Endpoint returns an array — take the first element
+            const report = Array.isArray(result) ? result[0] : result;
+            console.log('Credit report pulled successfully:', report?.id);
+            return report;
         } catch (err) {
             console.warn('Credit pull error (non-blocking):', err);
             return null;
@@ -3730,61 +3740,76 @@ export default function AgentFollowUpForm() {
         setIsLoading(true);
 
         try {
-            // ── Step 1: Pull credit report & submit follow-up form simultaneously ──
-            const [creditReportResult, formResponse] = await Promise.allSettled([
-                pullCreditReport(entryData.bvn),
-                (async () => {
-                    const formData = new FormData();
-                    formData.append("bvn", entryData.bvn);
-                    formData.append("nin", entryData.nin || "");
-                    formData.append("mobileNumber", mobileNumber);
-                    formData.append("usageType", usage.toLowerCase());
-                    formData.append("plan", entryData.plan || "");
-                    formData.append("installmentOption", entryData.installmentDuration || "");
-                    formData.append("homeAddress", homeAddress);
-                    formData.append("customerEmail", customerEmail);
-                    formData.append("guarantorEmail", guarantorEmail);
-                    formData.append("utilityBill", utilityBillFile);
+            // ── Step 1: Pull credit report first, then build form ─────────────
+            const creditReport = await pullCreditReport(entryData.bvn);
 
-                    if (usage === "Personal") {
-                        formData.append("workAddress", workAddress);
-                        formData.append("monthlyIncome", monthlyIncome);
-                        formData.append("storeAddress", "");
-                        formData.append("monthlySales", 0);
-                    } else {
-                        formData.append("storeAddress", storeAddress);
-                        formData.append("monthlySales", monthlySales);
-                        formData.append("workAddress", "");
-                        formData.append("monthlyIncome", 0);
-                    }
+            // ── Step 2: Build multipart form with credit report embedded ──────
+            const formData = new FormData();
+            formData.append("bvn",              entryData.bvn);
+            formData.append("nin",              entryData.nin || "");
+            formData.append("mobileNumber",     mobileNumber);
+            formData.append("usageType",        usage.toLowerCase());
+            formData.append("plan",             entryData.plan || "");
+            formData.append("installmentOption",entryData.installmentDuration || "");
+            formData.append("homeAddress",      homeAddress);
+            formData.append("customerEmail",    customerEmail);
+            formData.append("guarantorEmail",   guarantorEmail);
+            formData.append("utilityBill",      utilityBillFile);
+            formData.append("firstName",        entryData.firstName || "");
+            formData.append("lastName",         entryData.lastName  || "");
 
-                    // Signal backend to hold OTP until admin review
-                    formData.append("holdOtpForAdminReview", "true");
-
-                    // Attach credit report data as JSON string if available
-                    const creditData = creditReportResult?.value || null;
-                    if (creditData) {
-                        formData.append("creditReportJson", JSON.stringify(creditData));
-                    }
-
-                    const res = await fetch(`${BACKEND_API_URL}/api/agent-followup`, {
-                        method: "POST",
-                        body: formData
-                    });
-
-                    if (!res.ok) {
-                        const errText = await res.text();
-                        throw new Error(errText || "Submission failed");
-                    }
-                    return await res.json();
-                })()
-            ]);
-
-            if (formResponse.status === 'rejected') {
-                throw new Error(formResponse.reason?.message || "Submission failed");
+            if (usage === "Personal") {
+                formData.append("workAddress",   workAddress);
+                formData.append("monthlyIncome", monthlyIncome);
+                formData.append("storeAddress",  "");
+                formData.append("monthlySales",  0);
+            } else {
+                formData.append("storeAddress",  storeAddress);
+                formData.append("monthlySales",  monthlySales);
+                formData.append("workAddress",   "");
+                formData.append("monthlyIncome", 0);
             }
 
-            const data = formResponse.value;
+            // Mono financial data (from AgentEntryForm bank statement step)
+            if (entryData?.monoFinancialData) {
+                formData.append("monoFinancialDataJson", JSON.stringify(entryData.monoFinancialData));
+            }
+
+            // ── CREDIT REPORT EMBEDDED ────────────────────────────────────────
+            // The full Decision Engine response is serialised as JSON and stored
+            // by the backend so AdminCreditReview can read it via /admin-review/:token/data
+            if (creditReport) {
+                formData.append("creditReportJson", JSON.stringify(creditReport));
+                // Also pass key fields as flat values for quick access
+                formData.append("decisionEngineId",          creditReport.id || "");
+                formData.append("decisionEngineStatus",      creditReport.status || "");
+                formData.append("decisionEngineRiskLevel",   creditReport.risk_level || "");
+                formData.append("decisionEngineDecision",    creditReport.decision || "");
+                formData.append("bureauScoreRaw",            String(creditReport.bureau_score_raw ?? ""));
+                formData.append("bureauScoreNormalized",     String(creditReport.bureau_score_normalized ?? ""));
+                formData.append("firstCentralScore",         String(creditReport.first_central_score ?? ""));
+                formData.append("probabilityOfDefault",      String(creditReport.probability_of_default ?? ""));
+                formData.append("recommendedAmount",         String(creditReport.recommended_amount ?? ""));
+                formData.append("recommendedDurationMonths", String(creditReport.recommended_duration_months ?? ""));
+                formData.append("totalOutstandingDebt",      String(creditReport.total_outstanding_debt ?? ""));
+                formData.append("totalMonthlyInstalment",    String(creditReport.total_monthly_instalment ?? ""));
+            }
+
+            // Signal backend to hold OTP until admin review
+            formData.append("holdOtpForAdminReview", "true");
+
+            // ── Step 3: Submit to backend ─────────────────────────────────────
+            const res = await fetch(`${BACKEND_API_URL}/api/agent-followup`, {
+                method: "POST",
+                body: formData
+            });
+
+            if (!res.ok) {
+                const errText = await res.text();
+                throw new Error(errText || "Submission failed");
+            }
+
+            const data = await res.json();
 
             // Update DebitMandate (non-blocking)
             await updateDebitMandateCustomerDetails();
@@ -3796,17 +3821,18 @@ export default function AgentFollowUpForm() {
                 guarantorEmail,
                 homeAddress,
                 usageType: usage.toLowerCase(),
-                workAddress: usage === "Personal" ? workAddress : "",
-                storeAddress: usage === "Commercial" ? storeAddress : "",
-                monthlyIncome: usage === "Personal" ? monthlyIncome : "",
-                monthlySales: usage === "Commercial" ? monthlySales : "",
+                workAddress:  usage === "Personal"   ? workAddress  : "",
+                storeAddress: usage === "Commercial" ? storeAddress  : "",
+                monthlyIncome: usage === "Personal"  ? monthlyIncome : "",
+                monthlySales:  usage === "Commercial"? monthlySales  : "",
+                // pass credit report downstream for any subsequent pages
+                creditReport: creditReport || null,
             };
 
-            window.agentEntryData = entryData;
+            window.agentEntryData    = entryData;
             window.agentFollowUpData = finalCustomerData;
             window.guarantorFormData = finalCustomerData;
 
-            // ── Notify customer that their application is under review ──
             Swal.fire({
                 icon: "success",
                 title: "Application Submitted!",
@@ -3819,7 +3845,6 @@ export default function AgentFollowUpForm() {
                 confirmButtonColor: '#f7623b',
                 confirmButtonText: "Got it"
             }).then(() => {
-                // Navigate to a pending review waiting page
                 navigate("/application-pending", { state: finalCustomerData });
             });
 
@@ -4000,7 +4025,7 @@ export default function AgentFollowUpForm() {
                         className="w-full font-bold py-3 sm:py-4 text-sm sm:text-base rounded-lg text-white transition shadow-lg disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90"
                         style={{ backgroundColor: '#f7623b' }}
                     >
-                        {isLoading ? "Submitting..." : "Submit Follow-Up"}
+                        {isLoading ? "Submitting & Running Credit Check…" : "Submit Follow-Up"}
                     </button>
                 </form>
             </div>
